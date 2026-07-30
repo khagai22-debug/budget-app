@@ -290,4 +290,45 @@ try:
                 unassigned_spent = df_up[df_up["קטגוריה_לתצוגה"] == "לא משויך"]["סכום"].sum()
                 if unassigned_spent > 0:
                     unassigned_html = (
-                        '<div style="ma
+                        '<div style="margin-bottom: 22px; direction: rtl;">'
+                        '<div style="display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 8px;">'
+                        '<span style="font-weight: 700; color: #1e293b;">לא משויך (חורג / ללא תקציב)</span>'
+                        '<span style="color: #ef4444; font-size: 0.95rem;">'
+                        'סה"כ נוצל: <strong>₪' + f"{unassigned_spent:,.0f}" + '</strong>'
+                        '</span>'
+                        '</div>'
+                        '<div style="background-color: #e2e8f0; border-radius: 12px; height: 16px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">'
+                        '<div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div>'
+                        '</div>'
+                        '</div>'
+                    )
+                    html_bars += unassigned_html
+                    
+                html_bars += '</div>'
+                
+                st.markdown(html_bars, unsafe_allow_html=True)
+                st.info("💡 **איך משנים את סכומי התקציב?** פתח את קובץ `app.py` ב־GitHub, חפש את השורה שמתחילה ב־`BUDGET_PLAN = {` ותוכל לשנות שם את המספרים עבור כל קטגוריה.")
+                
+                st.markdown("<hr>", unsafe_allow_html=True)
+                l_col, r_col = st.columns(2)
+                with l_col:
+                    st.write("**עסקאות שנקלטו מהקובץ:**")
+                    show_up = df_up[["תאריך", "שם עסק באשראי", "קטגוריה_לתצוגה", "סכום"]].copy()
+                    show_up["סכום"] = show_up["סכום"].map(lambda x: f"₪{x:,.0f}")
+                    st.dataframe(show_up, use_container_width=True, hide_index=True)
+                
+                with r_col:
+                    st.write("**התפלגות קטגוריות מהקובץ:**")
+                    up_cat = df_up.groupby("קטגוריה_לתצוגה")["סכום"].sum().reset_index().sort_values("סכום", ascending=False)
+                    fig_up = px.pie(up_cat, names="קטגוריה_לתצוגה", values="סכום", hole=0.45)
+                    fig_up.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=360)
+                    st.plotly_chart(fig_up, use_container_width=True)
+                    
+            elif df_up is not None and df_up.empty:
+                st.warning("הקובץ נקרא בהצלחה, אך לא נמצאו בו שורות תקינות עם תאריך וסכום.")
+                
+        st.markdown('</div>', unsafe_allow_html=True)
+
+except Exception as e:
+    st.error("שגיאת התחברות למסד הנתונים או ריצה. בדוק את הלוגים ב-Manage app.")
+    st.write(e)
