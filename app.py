@@ -248,9 +248,44 @@ try:
                 up_total = df_up["סכום"].sum()
                 st.success(f"הקובץ נטען בהצלחה! סה״כ חיובים בקובץ: ₪{up_total:,.0f}")
                 
-                st.markdown("### 🎯 ניצול תקציב לפי קטגוריות")
+                st.markdown("### 🎯 ניצול תקציב - תמונת מצב")
                 
                 html_bars = '<div style="margin-top: 20px;">'
+                
+                # חישוב בר ראשי - סה"כ התקציב המתוכנן
+                total_planned_budget = sum(BUDGET_PLAN.values())
+                
+                if total_planned_budget > 0:
+                    overall_percent = (up_total / total_planned_budget) * 100
+                else:
+                    overall_percent = 100 if up_total > 0 else 0
+                    
+                overall_clamped = min(overall_percent, 100)
+                
+                if overall_percent <= 75:
+                    overall_color = "#10b981"
+                elif overall_percent <= 100:
+                    overall_color = "#f59e0b"
+                else:
+                    overall_color = "#ef4444"
+                
+                # יצירת הבר הראשי בעיצוב מודגש
+                overall_html = (
+                    '<div style="margin-bottom: 35px; direction: rtl; padding: 18px; background-color: #f1f5f9; border-radius: 14px; border: 1px solid #cbd5e1;">'
+                    '<div style="display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 12px;">'
+                    '<span style="font-weight: 800; color: #0f172a;">סה״כ תקציב חודשי מתוכנן</span>'
+                    '<span style="color: #334155; font-size: 1.1rem;">'
+                    '<strong>₪' + f"{up_total:,.0f}" + '</strong> מתוך ₪' + f"{total_planned_budget:,.0f}" + ' <span style="color: ' + overall_color + '; font-weight: 800; margin-right: 5px;">(' + f"{overall_percent:.0f}" + '%)</span>'
+                    '</span>'
+                    '</div>'
+                    '<div style="background-color: #e2e8f0; border-radius: 12px; height: 22px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">'
+                    '<div style="background-color: ' + overall_color + '; height: 100%; width: ' + f"{overall_clamped}%" + '; border-radius: 12px; transition: width 0.5s ease-in-out;"></div>'
+                    '</div>'
+                    '</div>'
+                )
+                html_bars += overall_html
+                
+                html_bars += '<h4 style="color: #475569; margin-bottom: 20px; direction: rtl;">פירוט הניצול לפי קטגוריות:</h4>'
                 
                 for cat in CATEGORIES:
                     if cat in ["עסק מוכר - סווג אוטומטית לפי מילון", "משיכה מקופת רכב (לא נכנס לתקציב שוטף)", "לא משויך"]:
