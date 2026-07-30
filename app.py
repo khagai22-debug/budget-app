@@ -22,7 +22,6 @@ CATEGORIES = [
     "לא משויך"
 ]
 
-# תקציב חודשי מתוכנן לכל קטגוריה (אפשר לערוך את המספרים כאן)
 BUDGET_PLAN = {
     "מזון וסופר": 3500,
     "אחזקת רכב (דלק, שטיפה, חניה)": 1200,
@@ -173,10 +172,6 @@ try:
         else:
             month_df = df_tx.copy()
 
-        cat_summary = pd.DataFrame()
-        if not month_df.empty:
-            cat_summary = month_df.groupby("קטגוריה_לתצוגה", dropna=False)["סכום"].sum().reset_index().sort_values("סכום", ascending=False)
-
         recent_df = month_df.sort_values("תאריך_dt", ascending=False).head(8).copy() if not month_df.empty else pd.DataFrame()
 
         c1, c2, c3, c4 = st.columns(4)
@@ -257,21 +252,18 @@ try:
                 
                 html_bars = '<div style="margin-top: 20px;">'
                 
+                # מציג בר עבור כל קטגוריה שיש לה תקציב, גם אם ההוצאה היא 0
                 for cat in CATEGORIES:
-                    if cat in ["עסק מוכר - סווג אוטומטית לפי מילון", "משיכה מקופת רכב (לא נכנס לתקציב שוטף)"]:
+                    if cat in ["עסק מוכר - סווג אוטומטית לפי מילון", "משיכה מקופת רכב (לא נכנס לתקציב שוטף)", "לא משויך"]:
                         continue
                         
                     limit = BUDGET_PLAN.get(cat, 0)
                     spent = df_up[df_up["קטגוריה_לתצוגה"] == cat]["סכום"].sum()
                     
-                    if limit == 0 and spent == 0:
+                    if limit == 0:
                         continue
                         
-                    if limit > 0:
-                        percent = (spent / limit) * 100
-                    else:
-                        percent = 100 if spent > 0 else 0
-                        
+                    percent = (spent / limit) * 100
                     clamped_percent = min(percent, 100)
                     
                     if percent <= 75:
