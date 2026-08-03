@@ -5,7 +5,8 @@ from datetime import datetime
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="מערכת תקציב אישי", page_icon="💰", layout="wide")
+# הגדרות עמוד (חייב להיות ראשון)
+st.set_page_config(page_title="מערכת תקציב אישי", page_icon="💎", layout="wide", initial_sidebar_state="collapsed")
 
 CATEGORIES = [
     "עסק מוכר - סווג אוטומטית לפי מילון",
@@ -34,17 +35,163 @@ BUDGET_PLAN = {
     "אפליקציות תשלום (דורש בירור)": 500,
 }
 
+# עיצוב פרימיום מלא ב-CSS
 st.markdown("""
 <style>
-.block-container {padding-top: 1.5rem; padding-bottom: 2rem; max-width: 1200px;}
-.main-title {font-size: 2.3rem; font-weight: 800; margin-bottom: 0.2rem;}
-.subtitle {color: #6b7280; margin-bottom: 1.2rem;}
-.metric-card {background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(15,23,42,0.08); border-radius: 18px; padding: 18px 18px 10px 18px; box-shadow: 0 8px 30px rgba(15,23,42,0.06);}
-.hero-box {background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%); color: white; border-radius: 24px; padding: 24px; box-shadow: 0 14px 40px rgba(19,78,74,0.25); margin-bottom: 1rem;}
-.section-box {background: white; border: 1px solid rgba(15,23,42,0.08); border-radius: 20px; padding: 18px; box-shadow: 0 8px 24px rgba(15,23,42,0.05);}
-.small-note {color:#6b7280;font-size:0.92rem;}
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Heebo', sans-serif !important;
+}
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+    max-width: 1200px;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Hero Section */
+.hero-box {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: white;
+    border-radius: 24px;
+    padding: 40px 30px;
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.2);
+    margin-bottom: 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.hero-box::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+}
+.main-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #2dd4bf, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.subtitle {
+    color: #94a3b8;
+    font-size: 1.2rem;
+    font-weight: 400;
+}
+
+/* Custom Metrics Cards */
+.metric-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 1rem;
+}
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+.metric-label {
+    color: #64748b;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.metric-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 4px;
+}
+
+/* Container Boxes */
+.section-box {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+    height: 100%;
+}
+
+/* Tabs Styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 12px;
+    background-color: #f8fafc;
+    border-radius: 16px;
+    padding: 8px;
+    margin-bottom: 24px;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: #64748b;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.stTabs [aria-selected="true"] {
+    background-color: white !important;
+    color: #0f172a !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Buttons */
+.stButton > button {
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    transition: all 0.3s ease !important;
+    width: 100%;
+}
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+    border: none !important;
+}
+.stButton > button[kind="primary"]:hover {
+    box-shadow: 0 8px 15px rgba(13, 148, 136, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Animations */
+.shimmer-effect {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s infinite linear;
+}
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
 </style>
 """, unsafe_allow_html=True)
+
+# פונקציית עזר ליצירת כרטיסיות נתונים יפות
+def render_metric(label, value, icon="💰", delta=None, is_currency=True):
+    val_str = f"₪{value:,.0f}" if is_currency else f"{value:,}"
+    delta_html = ""
+    if delta is not None:
+        color = "#10b981" if delta >= 0 else "#ef4444"
+        sign = "+" if delta >= 0 else ""
+        delta_html = f'<div style="color: {color}; font-size: 0.95rem; font-weight: 600; margin-top: 8px; background: {color}15; display: inline-block; padding: 2px 12px; border-radius: 20px;">{sign}₪{abs(delta):,.0f}</div>'
+
+    return f"""
+    <div class="metric-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="metric-label">{label}</div>
+            <div style="font-size: 1.6rem; background: #f8fafc; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">{icon}</div>
+        </div>
+        <div class="metric-value">{val_str}</div>
+        {delta_html}
+    </div>
+    """
 
 @st.cache_resource
 def get_gspread_client():
@@ -107,7 +254,7 @@ def process_uploaded_excel(uploaded_file, df_dict):
         df_uploaded.columns = [str(c).strip() for c in df_uploaded.columns]
         
         if "תאריך עסקה" not in df_uploaded.columns or "סכום חיוב" not in df_uploaded.columns:
-            st.error("הקובץ לא תואם למבנה המוכר של חברת האשראי (חסרות עמודות כמו 'תאריך עסקה' או 'סכום חיוב').")
+            st.error("הקובץ לא תואם למבנה המוכר של חברת האשראי.")
             return None
             
         df_uploaded = df_uploaded.dropna(subset=["תאריך עסקה"])
@@ -140,7 +287,6 @@ def process_uploaded_excel(uploaded_file, df_dict):
             return "לא משויך"
             
         df_mapped["קטגוריה_לתצוגה"] = df_mapped["שם עסק באשראי"].apply(map_category)
-        
         return df_mapped
         
     except Exception as e:
@@ -152,18 +298,18 @@ SPREADSHEET_URL = st.secrets.get("spreadsheet_url", "")
 try:
     df_tx, business_names, df_dict = load_data(SPREADSHEET_URL)
     
+    # אזור כותרת פרימיום
     st.markdown('<div class="hero-box">', unsafe_allow_html=True)
-    st.markdown('<div class="main-title">💸 מערכת תקציב אישית</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle" style="color:#d1fae5; margin-bottom:0;">ניהול הוצאות בזמן אמת, חיווי תקציבי, גרפים ועסקאות אחרונות במקום אחד</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">💸 הפיננסים שלי</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">שליטה מלאה, תובנות חכמות וניהול תקציב מודרני מכל מקום</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["📊 דשבורד נוכחי (מתוך גוגל שיטס)", "📥 העלאת פירוט אשראי (סימולציה וניתוח)"])
+    tab1, tab2 = st.tabs(["📊 דשבורד נוכחי (גוגל שיטס)", "📥 ניתוח אקסל מהבנק"])
     
     with tab1:
         total_spent = float(df_tx["סכום"].sum()) if not df_tx.empty else 0.0
         income_planned = sum(BUDGET_PLAN.values())
         balance = income_planned - total_spent
-        over_budget = balance < 0
 
         current_month = pd.Timestamp.today().month
         current_year = pd.Timestamp.today().year
@@ -174,37 +320,38 @@ try:
 
         recent_df = month_df.sort_values("תאריך_dt", ascending=False).head(8).copy() if not month_df.empty else pd.DataFrame()
 
+        # תצוגת הכרטיסיות החדשה
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("הכנסה מתוכננת (סך התקציבים)", f"₪{income_planned:,.0f}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(render_metric("תקציב מתוכנן", income_planned, "🎯"), unsafe_allow_html=True)
         with c2:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("סה״כ הוצאות", f"₪{total_spent:,.0f}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(render_metric("סה״כ הוצאות", total_spent, "💸"), unsafe_allow_html=True)
         with c3:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("יתרה נוכחית", f"₪{balance:,.0f}", delta=f"₪{balance:,.0f}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(render_metric("יתרה נוכחית", balance, "⚖️", delta=balance), unsafe_allow_html=True)
         with c4:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric("מספר עסקאות החודש", f"{len(month_df):,}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(render_metric("עסקאות החודש", len(month_df), "🧾", is_currency=False), unsafe_allow_html=True)
 
-        left, right = st.columns([1.05, 0.95])
+        st.markdown("<br>", unsafe_allow_html=True)
+        left, right = st.columns([1.1, 0.9])
 
         with left:
             st.markdown('<div class="section-box">', unsafe_allow_html=True)
-            st.subheader("🛒 הוספת הוצאה חדשה")
+            st.markdown("<h3 style='color: #0f172a; margin-bottom: 25px;'>🛒 הוספת הוצאה מהירה</h3>", unsafe_allow_html=True)
             with st.form("add_tx_form", clear_on_submit=True):
-                date = st.date_input("תאריך", datetime.today())
-                business = st.selectbox("שם בית העסק (אם קיים במילון)", options=[""] + business_names, index=0, help="אפשר לבחור עסק קיים כדי להימנע מהקלדה")
-                business_manual = st.text_input("או הקלד בית עסק חדש")
-                amount = st.number_input("סכום (₪)", min_value=0.0, step=10.0)
-                category = st.selectbox("סיווג", CATEGORIES)
-                note = st.text_input("הערה קצרה (אופציונלי)")
-                submitted = st.form_submit_button("שלח לתקציב")
+                # פיצול הטופס לעמודות לנוחות
+                col_form1, col_form2 = st.columns(2)
+                with col_form1:
+                    date = st.date_input("תאריך", datetime.today())
+                    amount = st.number_input("סכום (₪)", min_value=0.0, step=10.0)
+                with col_form2:
+                    business = st.selectbox("שם בית העסק (מילון)", options=[""] + business_names, index=0)
+                    category = st.selectbox("סיווג תקציבי", CATEGORIES)
+                
+                business_manual = st.text_input("הזנה ידנית - הקלד עסק חדש (אם לא מופיע למעלה)")
+                note = st.text_input("הערות (אופציונלי)")
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                submitted = st.form_submit_button("➕ שלח נתונים לתקציב", type="primary")
 
                 if submitted:
                     chosen_business = business_manual.strip() if business_manual.strip() else business.strip()
@@ -215,16 +362,14 @@ try:
                         tx_sheet = wb.worksheet("תנועות_אשראי")
                         tx_sheet.append_row([date.strftime('%d/%m/%Y'), chosen_business, float(amount), cat_val])
                         load_data.clear()
-                        st.success(f"✅ ההוצאה בסך ₪{amount:,.0f} עבור {chosen_business} נשמרה בהצלחה")
-                        if note:
-                            st.info(f"הערה: {note}")
+                        st.success(f"✅ ההוצאה עבור {chosen_business} נשמרה בהצלחה!")
                     else:
-                        st.error("נא לבחור או להקליד בית עסק, ולהזין סכום גדול מאפס.")
+                        st.error("נא לבחור עסק ולהזין סכום תקין.")
             st.markdown('</div>', unsafe_allow_html=True)
 
         with right:
             st.markdown('<div class="section-box">', unsafe_allow_html=True)
-            st.subheader("📋 עסקאות אחרונות")
+            st.markdown("<h3 style='color: #0f172a; margin-bottom: 25px;'>📋 עסקאות אחרונות</h3>", unsafe_allow_html=True)
             if recent_df.empty:
                 st.info("עדיין אין עסקאות להצגה.")
             else:
@@ -237,22 +382,20 @@ try:
 
     with tab2:
         st.markdown('<div class="section-box">', unsafe_allow_html=True)
-        st.subheader("📥 ניתוח פירוט חיובים מול יעדי תקציב")
-        st.write("העלה קובץ אקסל כדי לראות כמה ניצלת מכל סעיף. מדדי ההתקדמות מראים את הניצול מהתקציב המתוכנן.")
+        st.markdown("<h3 style='color: #0f172a; margin-bottom: 10px;'>📥 מנוע סריקת קבצי אשראי</h3>", unsafe_allow_html=True)
+        st.write("זרוק לכאן את קובץ ה-Excel של חברת האשראי, וקבל ניתוח עומק אוטומטי מול יעד התקציב שלך.")
         
-        uploaded_file = st.file_uploader("בחר קובץ אקסל (.xlsx)", type=["xlsx"])
+        uploaded_file = st.file_uploader("", type=["xlsx"])
         
         if uploaded_file is not None:
             df_up = process_uploaded_excel(uploaded_file, df_dict)
             if df_up is not None and not df_up.empty:
                 up_total = df_up["סכום"].sum()
-                st.success(f"הקובץ נטען בהצלחה! סה״כ חיובים בקובץ: ₪{up_total:,.0f}")
+                st.success(f"הקובץ נקלט! סך החיובים: ₪{up_total:,.0f}")
                 
-                st.markdown("### 🎯 ניצול תקציב - תמונת מצב")
+                st.markdown("<h3 style='margin-top: 30px; margin-bottom:20px; color:#0f172a;'>🎯 מדדי ניצול תקציב</h3>", unsafe_allow_html=True)
                 
                 html_bars = '<div style="margin-top: 20px;">'
-                
-                # חישוב בר ראשי - סה"כ התקציב המתוכנן
                 total_planned_budget = sum(BUDGET_PLAN.values())
                 
                 if total_planned_budget > 0:
@@ -263,30 +406,36 @@ try:
                 overall_clamped = min(overall_percent, 100)
                 
                 if overall_percent <= 75:
-                    overall_color = "#10b981"
+                    overall_color = "#10b981" # ירוק
                 elif overall_percent <= 100:
-                    overall_color = "#f59e0b"
+                    overall_color = "#f59e0b" # צהוב
                 else:
-                    overall_color = "#ef4444"
+                    overall_color = "#ef4444" # אדום
                 
-                # יצירת הבר הראשי בעיצוב מודגש
-                overall_html = (
-                    '<div style="margin-bottom: 35px; direction: rtl; padding: 18px; background-color: #f1f5f9; border-radius: 14px; border: 1px solid #cbd5e1;">'
-                    '<div style="display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 12px;">'
-                    '<span style="font-weight: 800; color: #0f172a;">סה״כ תקציב חודשי מתוכנן</span>'
-                    '<span style="color: #334155; font-size: 1.1rem;">'
-                    '<strong>₪' + f"{up_total:,.0f}" + '</strong> מתוך ₪' + f"{total_planned_budget:,.0f}" + ' <span style="color: ' + overall_color + '; font-weight: 800; margin-right: 5px;">(' + f"{overall_percent:.0f}" + '%)</span>'
-                    '</span>'
-                    '</div>'
-                    '<div style="background-color: #e2e8f0; border-radius: 12px; height: 22px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">'
-                    '<div style="background-color: ' + overall_color + '; height: 100%; width: ' + f"{overall_clamped}%" + '; border-radius: 12px; transition: width 0.5s ease-in-out;"></div>'
-                    '</div>'
-                    '</div>'
-                )
+                # בר מקיף חדש (Premium Shimmer)
+                overall_html = f"""
+                <div style="margin-bottom: 40px; direction: rtl; padding: 24px; background: linear-gradient(to left, #f8fafc, #ffffff); border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+                        <div>
+                            <div style="font-weight: 800; color: #0f172a; font-size: 1.4rem;">סה״כ הוצאות מול תקציב</div>
+                            <div style="color: #64748b; font-size: 0.95rem; margin-top: 4px;">תמונת מצב כללית לקובץ המועלה</div>
+                        </div>
+                        <div style="text-align: left;">
+                            <span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">₪{up_total:,.0f}</span>
+                            <span style="color: #64748b; font-size: 1.1rem; margin-right: 8px;">מתוך ₪{total_planned_budget:,.0f}</span>
+                            <div style="color: {overall_color}; font-weight: 800; font-size: 1.2rem; margin-top: -4px;">{overall_percent:.0f}%</div>
+                        </div>
+                    </div>
+                    <div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                        <div style="background: linear-gradient(90deg, {overall_color}dd, {overall_color}); height: 100%; width: {overall_clamped}%; border-radius: 16px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); position: relative;">
+                            <div class="shimmer-effect"></div>
+                        </div>
+                    </div>
+                </div>
+                """
                 html_bars += overall_html
                 
-                html_bars += '<h4 style="color: #475569; margin-bottom: 20px; direction: rtl;">פירוט הניצול לפי קטגוריות:</h4>'
-                
+                # רשימת ברים לקטגוריות
                 for cat in CATEGORIES:
                     if cat in ["עסק מוכר - סווג אוטומטית לפי מילון", "משיכה מקופת רכב (לא נכנס לתקציב שוטף)", "לא משויך"]:
                         continue
@@ -307,56 +456,64 @@ try:
                     else:
                         bar_color = "#ef4444"
                         
-                    bar_html = (
-                        '<div style="margin-bottom: 22px; direction: rtl;">'
-                        '<div style="display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 8px;">'
-                        '<span style="font-weight: 700; color: #1e293b;">' + cat + '</span>'
-                        '<span style="color: #64748b; font-size: 0.95rem;">'
-                        '<strong>₪' + f"{spent:,.0f}" + '</strong> מתוך ₪' + f"{limit:,.0f}" + ' <span style="color: ' + bar_color + '; font-weight: bold; margin-right: 5px;">(' + f"{percent:.0f}" + '%)</span>'
-                        '</span>'
-                        '</div>'
-                        '<div style="background-color: #e2e8f0; border-radius: 12px; height: 16px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">'
-                        '<div style="background-color: ' + bar_color + '; height: 100%; width: ' + f"{clamped_percent}%" + '; border-radius: 12px; transition: width 0.5s ease-in-out;"></div>'
-                        '</div>'
-                        '</div>'
-                    )
+                    bar_html = f"""
+                    <div style="margin-bottom: 24px; direction: rtl;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 700; color: #1e293b; font-size: 1.05rem;">{cat}</span>
+                            <span style="color: #64748b; font-size: 0.95rem;">
+                                <strong style="color:#0f172a;">₪{spent:,.0f}</strong> מתוך ₪{limit:,.0f} 
+                                <span style="background: {bar_color}15; color: {bar_color}; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-right: 8px;">{percent:.0f}%</span>
+                            </span>
+                        </div>
+                        <div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, {bar_color}CC, {bar_color}); height: 100%; width: {clamped_percent}%; border-radius: 12px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);"></div>
+                        </div>
+                    </div>
+                    """
                     html_bars += bar_html
                 
                 unassigned_spent = df_up[df_up["קטגוריה_לתצוגה"] == "לא משויך"]["סכום"].sum()
                 if unassigned_spent > 0:
-                    unassigned_html = (
-                        '<div style="margin-bottom: 22px; direction: rtl;">'
-                        '<div style="display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 8px;">'
-                        '<span style="font-weight: 700; color: #1e293b;">לא משויך (חורג / ללא תקציב)</span>'
-                        '<span style="color: #ef4444; font-size: 0.95rem;">'
-                        'סה"כ נוצל: <strong>₪' + f"{unassigned_spent:,.0f}" + '</strong>'
-                        '</span>'
-                        '</div>'
-                        '<div style="background-color: #e2e8f0; border-radius: 12px; height: 16px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">'
-                        '<div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div>'
-                        '</div>'
-                        '</div>'
-                    )
+                    unassigned_html = f"""
+                    <div style="margin-bottom: 24px; direction: rtl;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 700; color: #1e293b; font-size: 1.05rem;">לא משויך (ללא תקציב)</span>
+                            <span style="color: #ef4444; font-size: 0.95rem;">
+                                סה"כ נוצל: <strong>₪{unassigned_spent:,.0f}</strong>
+                            </span>
+                        </div>
+                        <div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">
+                            <div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div>
+                        </div>
+                    </div>
+                    """
                     html_bars += unassigned_html
                     
                 html_bars += '</div>'
-                
                 st.markdown(html_bars, unsafe_allow_html=True)
-                st.info("💡 **איך משנים את סכומי התקציב?** פתח את קובץ `app.py` ב־GitHub, חפש את השורה שמתחילה ב־`BUDGET_PLAN = {` ותוכל לשנות שם את המספרים עבור כל קטגוריה.")
                 
-                st.markdown("<hr>", unsafe_allow_html=True)
+                st.markdown("<hr style='margin: 40px 0; border: 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+                
                 l_col, r_col = st.columns(2)
                 with l_col:
-                    st.write("**עסקאות שנקלטו מהקובץ:**")
+                    st.markdown("<h4 style='color: #0f172a;'>🧾 רשימת העסקאות מהקובץ</h4>", unsafe_allow_html=True)
                     show_up = df_up[["תאריך", "שם עסק באשראי", "קטגוריה_לתצוגה", "סכום"]].copy()
                     show_up["סכום"] = show_up["סכום"].map(lambda x: f"₪{x:,.0f}")
                     st.dataframe(show_up, use_container_width=True, hide_index=True)
                 
                 with r_col:
-                    st.write("**התפלגות קטגוריות מהקובץ:**")
+                    st.markdown("<h4 style='color: #0f172a;'>🍩 התפלגות קטגוריות</h4>", unsafe_allow_html=True)
                     up_cat = df_up.groupby("קטגוריה_לתצוגה")["סכום"].sum().reset_index().sort_values("סכום", ascending=False)
-                    fig_up = px.pie(up_cat, names="קטגוריה_לתצוגה", values="סכום", hole=0.45)
-                    fig_up.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=360)
+                    
+                    # גרף מעוצב ומרשים יותר
+                    fig_up = px.pie(up_cat, names="קטגוריה_לתצוגה", values="סכום", hole=0.55, 
+                                    color_discrete_sequence=px.colors.sequential.Teal)
+                    fig_up.update_layout(
+                        margin=dict(l=0, r=0, t=20, b=0), 
+                        height=380,
+                        font=dict(family="Heebo", size=14),
+                        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
+                    )
                     st.plotly_chart(fig_up, use_container_width=True)
                     
             elif df_up is not None and df_up.empty:
@@ -365,5 +522,5 @@ try:
         st.markdown('</div>', unsafe_allow_html=True)
 
 except Exception as e:
-    st.error("שגיאת התחברות למסד הנתונים או ריצה. בדוק את הלוגים ב-Manage app.")
+    st.error("שגיאת התחברות למסד הנתונים או ריצה. בדוק את הלוגים.")
     st.write(e)
