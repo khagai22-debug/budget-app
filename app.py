@@ -171,6 +171,7 @@ def process_uploaded_excel(uploaded_file, df_dict):
 
 import re
 def process_mizrahi_pdf(pdf_file, df_dict):
+def process_mizrahi_pdf(pdf_file, df_dict):
     try:
         from pypdf import PdfReader
         import re
@@ -179,35 +180,53 @@ def process_mizrahi_pdf(pdf_file, df_dict):
         rows = []
 
         for page in reader.pages:
-            text = page.extract_text() or ""
+            page_text = page.extract_text() or ""
 
-            for line in text.splitlines():
-                line = line.strip()
+            date_matches = list(
+                re.finditer(r"d{2}/d{2}/d{4}", page_text)
+            )
 
-                date_match = re.search(r"(d{2}/d{2}/d{4})", line)
-                if not date_match:
-                    continue
+            for i, date_match in enumerate(date_matches):
+                date_text = date_match.group()
 
-                date_text = date_match.group(1)
-                rest = line[date_match.end():].strip()
+                start = date_match.end()
+
+                if i < len(date_matches) - 1:
+                    end = date_matches[i + 1].start()
+                else:
+                    end = len(page_text)
+
+                transaction_text = page_text[start:end].strip()
 
                 amount_match = re.search(
-                    r"(-?d{1,3}(?:,d{3})*.d{2}|d{1,3}(?:,d{3})*.d{2}-)",
-                    rest
+                    r"-?d{1,3}(?:,d{3})*.d{2}-?",
+                    transaction_text
                 )
 
                 if not amount_match:
                     continue
 
-                amount_text = amount_match.group(1)
-                description = rest[:amount_match.start()].strip()
+                amount_text = amount_match.group()
+                description = transaction_text[
+                    :amount_match.start()
+                ].strip()
 
-                description = description.replace("(י)", "").replace(")י(", "").strip()
+                description = (
+                    description
+                    .replace("(י)", "")
+                    .replace(")י(", "")
+                    .replace("(פ)", "")
+                    .replace(")פ(", "")
+                    .strip()
+                )
 
-                if not description:
+                if len(description) < 2:
                     continue
 
-                is_negative = amount_text.endswith("-") or amount_text.startswith("-")
+                is_negative = (
+                    amount_text.startswith("-")
+                    or amount_text.endswith("-")
+                )
 
                 amount = float(
                     amount_text
@@ -218,35 +237,39 @@ def process_mizrahi_pdf(pdf_file, df_dict):
                 if is_negative:
                     amount = -amount
 
+                parsed_date = pd.to_datetime(
+                    date_text,
+                    format="%d/%m/%Y",
+                    errors="coerce"
+                )
+
+                if pd.isna(parsed_date):
+                    continue
+
                 rows.append({
                     "תאריך": date_text,
-                    "תאריך_dt": pd.to_datetime(
-                        date_text,
-                        format="%d/%m/%Y",
-                        errors="coerce"
-                    ),
+                    "תאריך_dt": parsed_date,
                     "שם פעולה": description,
                     "סכום": amount,
                     "סוג": "הכנסה" if amount > 0 else "הוצאה",
                     "סכום_אבסולוטי": abs(amount)
                 })
 
-        if not rows:
+        if len(rows) == 0:
             return None
 
         df_mapped = pd.DataFrame(rows)
-        df_mapped = df_mapped.dropna(subset=["תאריך_dt"])
 
-        df_mapped["קטגוריה_לתצוגה"] = df_mapped["שם פעולה"].apply(
-            lambda x: apply_dictionary(x, df_dict)
+        df_mapped["קטגוריה_לתצוגה"] = (
+            df_mapped["שם פעולה"]
+            .apply(lambda value: apply_dictionary(value, df_dict))
         )
 
         return df_mapped
 
-    except Exception as e:
-        st.error(f"שגיאה בקריאת קובץ הבנק: {e}")
-        return None
-def process_bank_excel(uploaded_file, df_dict):
+    except Exception as error:
+        st.error(f"שגיאה בקריאת קובץ הבנק: {error}")
+        return Nonedef process_bank_excel(uploaded_file, df_dict):
     try:
         df_raw = pd.read_excel(uploaded_file)
         header_row = -1
