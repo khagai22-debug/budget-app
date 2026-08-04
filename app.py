@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 import plotly.express as px
 
-# הגדרות עמוד (חייב להיות ראשון)
+# הגדרות עמוד
 st.set_page_config(page_title="מערכת תקציב אישי", page_icon="💎", layout="wide", initial_sidebar_state="collapsed")
 
 CATEGORIES = [
@@ -35,10 +35,15 @@ BUDGET_PLAN = {
     "אפליקציות תשלום (דורש בירור)": 500,
 }
 
-# עיצוב פרימיום מלא ב-CSS
+# עיצוב פרימיום צבעוני ומואר
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap');
+
+/* רקע כללי לאפליקציה */
+.stApp {
+    background-color: #f4f7fc;
+}
 
 html, body, [class*="css"] {
     font-family: 'Heebo', sans-serif !important;
@@ -52,13 +57,13 @@ html, body, [class*="css"] {
     text-align: right;
 }
 
-/* Hero Section */
+/* Hero Section צבעוני וחי */
 .hero-box {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
     color: white;
     border-radius: 24px;
     padding: 40px 30px;
-    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.2);
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4);
     margin-bottom: 2.5rem;
     text-align: center;
     position: relative;
@@ -68,63 +73,63 @@ html, body, [class*="css"] {
     content: '';
     position: absolute;
     top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
     pointer-events: none;
 }
 .main-title {
     font-size: 3rem;
     font-weight: 800;
     margin-bottom: 0.5rem;
-    background: linear-gradient(to right, #2dd4bf, #38bdf8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 .subtitle {
-    color: #94a3b8;
+    color: #e0e7ff;
     font-size: 1.2rem;
     font-weight: 400;
 }
 
-/* Custom Metrics Cards */
+/* כרטיסיות נתונים צבעוניות */
 .metric-card {
     background: white;
-    border: 1px solid #f1f5f9;
-    border-radius: 24px;
+    border-bottom: 4px solid #3b82f6;
+    border-radius: 20px;
     padding: 24px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     margin-bottom: 1rem;
 }
 .metric-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.15);
+    border-bottom: 4px solid #8b5cf6;
 }
 .metric-label {
-    color: #64748b;
+    color: #475569;
     font-size: 1.1rem;
     font-weight: 600;
 }
 .metric-value {
     font-size: 2.2rem;
     font-weight: 800;
-    color: #0f172a;
+    color: #1e293b;
     margin-top: 4px;
 }
 
 /* Container Boxes */
 .section-box {
     background: white;
-    border: 1px solid #f1f5f9;
+    border: 1px solid #e2e8f0;
     border-radius: 24px;
     padding: 30px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
     height: 100%;
 }
 
 /* Tabs Styling */
 .stTabs [data-baseweb="tab-list"] {
     gap: 12px;
-    background-color: #f8fafc;
+    background-color: #e2e8f0;
     border-radius: 16px;
     padding: 8px;
     margin-bottom: 24px;
@@ -132,14 +137,14 @@ html, body, [class*="css"] {
 .stTabs [data-baseweb="tab"] {
     border-radius: 12px;
     padding: 12px 24px;
-    color: #64748b;
+    color: #475569;
     font-weight: 600;
     transition: all 0.2s;
 }
 .stTabs [aria-selected="true"] {
-    background-color: white !important;
-    color: #0f172a !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
 }
 
 /* Buttons */
@@ -151,11 +156,13 @@ html, body, [class*="css"] {
     width: 100%;
 }
 .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
     border: none !important;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3) !important;
 }
 .stButton > button[kind="primary"]:hover {
-    box-shadow: 0 8px 15px rgba(13, 148, 136, 0.4) !important;
+    box-shadow: 0 8px 15px rgba(16, 185, 129, 0.5) !important;
     transform: translateY(-2px) !important;
 }
 
@@ -173,20 +180,20 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-# פונקציית עזר ליצירת כרטיסיות נתונים יפות
+# פונקציית עזר ליצירת כרטיסיות
 def render_metric(label, value, icon="💰", delta=None, is_currency=True):
     val_str = f"₪{value:,.0f}" if is_currency else f"{value:,}"
     delta_html = ""
     if delta is not None:
         color = "#10b981" if delta >= 0 else "#ef4444"
         sign = "+" if delta >= 0 else ""
-        delta_html = f'<div style="color: {color}; font-size: 0.95rem; font-weight: 600; margin-top: 8px; background: {color}15; display: inline-block; padding: 2px 12px; border-radius: 20px;">{sign}₪{abs(delta):,.0f}</div>'
+        delta_html = f'<div style="color: {color}; font-size: 0.95rem; font-weight: 800; margin-top: 8px; background: {color}20; display: inline-block; padding: 4px 12px; border-radius: 20px;">{sign}₪{abs(delta):,.0f}</div>'
 
     return f"""
     <div class="metric-card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div class="metric-label">{label}</div>
-            <div style="font-size: 1.6rem; background: #f8fafc; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">{icon}</div>
+            <div style="font-size: 1.6rem; background: #e0e7ff; color: #4f46e5; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">{icon}</div>
         </div>
         <div class="metric-value">{val_str}</div>
         {delta_html}
@@ -298,10 +305,9 @@ SPREADSHEET_URL = st.secrets.get("spreadsheet_url", "")
 try:
     df_tx, business_names, df_dict = load_data(SPREADSHEET_URL)
     
-    # אזור כותרת פרימיום
     st.markdown('<div class="hero-box">', unsafe_allow_html=True)
     st.markdown('<div class="main-title">💸 הפיננסים שלי</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">שליטה מלאה, תובנות חכמות וניהול תקציב מודרני מכל מקום</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">שליטה מלאה, תובנות חכמות וניהול צבעוני וחי מכל מקום</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
     tab1, tab2 = st.tabs(["📊 דשבורד נוכחי (גוגל שיטס)", "📥 ניתוח אקסל מהבנק"])
@@ -320,7 +326,6 @@ try:
 
         recent_df = month_df.sort_values("תאריך_dt", ascending=False).head(8).copy() if not month_df.empty else pd.DataFrame()
 
-        # תצוגת הכרטיסיות החדשה
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.markdown(render_metric("תקציב מתוכנן", income_planned, "🎯"), unsafe_allow_html=True)
@@ -336,9 +341,8 @@ try:
 
         with left:
             st.markdown('<div class="section-box">', unsafe_allow_html=True)
-            st.markdown("<h3 style='color: #0f172a; margin-bottom: 25px;'>🛒 הוספת הוצאה מהירה</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #1e293b; margin-bottom: 25px;'>🛒 הוספת הוצאה מהירה</h3>", unsafe_allow_html=True)
             with st.form("add_tx_form", clear_on_submit=True):
-                # פיצול הטופס לעמודות לנוחות
                 col_form1, col_form2 = st.columns(2)
                 with col_form1:
                     date = st.date_input("תאריך", datetime.today())
@@ -369,7 +373,7 @@ try:
 
         with right:
             st.markdown('<div class="section-box">', unsafe_allow_html=True)
-            st.markdown("<h3 style='color: #0f172a; margin-bottom: 25px;'>📋 עסקאות אחרונות</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #1e293b; margin-bottom: 25px;'>📋 עסקאות אחרונות</h3>", unsafe_allow_html=True)
             if recent_df.empty:
                 st.info("עדיין אין עסקאות להצגה.")
             else:
@@ -382,8 +386,8 @@ try:
 
     with tab2:
         st.markdown('<div class="section-box">', unsafe_allow_html=True)
-        st.markdown("<h3 style='color: #0f172a; margin-bottom: 10px;'>📥 מנוע סריקת קבצי אשראי</h3>", unsafe_allow_html=True)
-        st.write("זרוק לכאן את קובץ ה-Excel של חברת האשראי, וקבל ניתוח עומק אוטומטי מול יעד התקציב שלך.")
+        st.markdown("<h3 style='color: #1e293b; margin-bottom: 10px;'>📥 מנוע סריקת קבצי אשראי</h3>", unsafe_allow_html=True)
+        st.write("זרוק לכאן את קובץ ה-Excel של חברת האשראי, וקבל ניתוח צבעוני מול יעד התקציב שלך.")
         
         uploaded_file = st.file_uploader("", type=["xlsx"])
         
@@ -391,9 +395,9 @@ try:
             df_up = process_uploaded_excel(uploaded_file, df_dict)
             if df_up is not None and not df_up.empty:
                 up_total = df_up["סכום"].sum()
-                st.success(f"הקובץ נקלט! סך החיובים: ₪{up_total:,.0f}")
+                st.success(f"הקובץ נקלט בהצלחה! סך החיובים: ₪{up_total:,.0f}")
                 
-                st.markdown("<h3 style='margin-top: 30px; margin-bottom:20px; color:#0f172a;'>🎯 מדדי ניצול תקציב</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='margin-top: 30px; margin-bottom:20px; color:#1e293b;'>🎯 מדדי ניצול תקציב</h3>", unsafe_allow_html=True)
                 
                 html_bars = '<div style="margin-top: 20px;">'
                 total_planned_budget = sum(BUDGET_PLAN.values())
@@ -405,29 +409,29 @@ try:
                     
                 overall_clamped = min(overall_percent, 100)
                 
+                # צבעי ברים עזים יותר
                 if overall_percent <= 75:
-                    overall_color = "#10b981" # ירוק
+                    overall_color = "#10b981" # ירוק בוהק
                 elif overall_percent <= 100:
-                    overall_color = "#f59e0b" # צהוב
+                    overall_color = "#f59e0b" # צהוב-כתום
                 else:
-                    overall_color = "#ef4444" # אדום
+                    overall_color = "#ef4444" # אדום חי
                 
-                # בר מקיף חדש (Premium Shimmer)
                 overall_html = (
-                    '<div style="margin-bottom: 40px; direction: rtl; padding: 24px; background: linear-gradient(to left, #f8fafc, #ffffff); border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">'
+                    '<div style="margin-bottom: 40px; direction: rtl; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f4f7fc 100%); border-radius: 20px; border: 2px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">'
                     '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">'
                     '<div>'
-                    '<div style="font-weight: 800; color: #0f172a; font-size: 1.4rem;">סה״כ הוצאות מול תקציב</div>'
-                    '<div style="color: #64748b; font-size: 0.95rem; margin-top: 4px;">תמונת מצב כללית לקובץ המועלה</div>'
+                    '<div style="font-weight: 800; color: #1e293b; font-size: 1.5rem;">סה״כ הוצאות מול תקציב</div>'
+                    '<div style="color: #64748b; font-size: 1rem; margin-top: 4px;">תמונת מצב מקיפה</div>'
                     '</div>'
                     '<div style="text-align: left;">'
-                    '<span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">₪' + f"{up_total:,.0f}" + '</span> '
-                    '<span style="color: #64748b; font-size: 1.1rem; margin-right: 8px;">מתוך ₪' + f"{total_planned_budget:,.0f}" + '</span>'
-                    '<div style="color: ' + overall_color + '; font-weight: 800; font-size: 1.2rem; margin-top: -4px;">' + f"{overall_percent:.0f}" + '%</div>'
+                    '<span style="font-size: 2rem; font-weight: 800; color: #1e293b;">₪' + f"{up_total:,.0f}" + '</span> '
+                    '<span style="color: #64748b; font-size: 1.2rem; margin-right: 8px;">מתוך ₪' + f"{total_planned_budget:,.0f}" + '</span>'
+                    '<div style="color: ' + overall_color + '; font-weight: 800; font-size: 1.3rem; margin-top: -2px;">' + f"{overall_percent:.0f}" + '%</div>'
                     '</div>'
                     '</div>'
-                    '<div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">'
-                    '<div style="background: linear-gradient(90deg, ' + overall_color + 'dd, ' + overall_color + '); height: 100%; width: ' + f"{overall_clamped}" + '%; border-radius: 16px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); position: relative;">'
+                    '<div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">'
+                    '<div style="background: linear-gradient(90deg, ' + overall_color + '99, ' + overall_color + '); height: 100%; width: ' + f"{overall_clamped}" + '%; border-radius: 16px; transition: width 1s ease; position: relative;">'
                     '<div class="shimmer-effect"></div>'
                     '</div>'
                     '</div>'
@@ -435,7 +439,6 @@ try:
                 )
                 html_bars += overall_html
                 
-                # רשימת ברים לקטגוריות
                 for cat in CATEGORIES:
                     if cat in ["עסק מוכר - סווג אוטומטית לפי מילון", "משיכה מקופת רכב (לא נכנס לתקציב שוטף)", "לא משויך"]:
                         continue
@@ -450,23 +453,23 @@ try:
                     clamped_percent = min(percent, 100)
                     
                     if percent <= 75:
-                        bar_color = "#10b981"
+                        bar_color = "#34d399" # ירוק מואר
                     elif percent <= 100:
-                        bar_color = "#f59e0b"
+                        bar_color = "#fbbf24" # צהוב מואר
                     else:
-                        bar_color = "#ef4444"
+                        bar_color = "#f87171" # אדום מואר
                         
                     bar_html = (
                         '<div style="margin-bottom: 24px; direction: rtl;">'
                         '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">'
-                        '<span style="font-weight: 700; color: #1e293b; font-size: 1.05rem;">' + cat + '</span>'
-                        '<span style="color: #64748b; font-size: 0.95rem;">'
+                        '<span style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">' + cat + '</span>'
+                        '<span style="color: #475569; font-size: 1rem;">'
                         '<strong style="color:#0f172a;">₪' + f"{spent:,.0f}" + '</strong> מתוך ₪' + f"{limit:,.0f}" + ' '
-                        '<span style="background: ' + bar_color + '15; color: ' + bar_color + '; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-right: 8px;">' + f"{percent:.0f}" + '%</span>'
+                        '<span style="background: ' + bar_color + '20; color: ' + bar_color + '; font-weight: 800; padding: 4px 10px; border-radius: 12px; margin-right: 8px;">' + f"{percent:.0f}" + '%</span>'
                         '</span>'
                         '</div>'
-                        '<div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">'
-                        '<div style="background: linear-gradient(90deg, ' + bar_color + 'CC, ' + bar_color + '); height: 100%; width: ' + f"{clamped_percent}" + '%; border-radius: 12px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);"></div>'
+                        '<div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">'
+                        '<div style="background: linear-gradient(90deg, ' + bar_color + 'aa, ' + bar_color + '); height: 100%; width: ' + f"{clamped_percent}" + '%; border-radius: 12px; transition: width 0.8s ease;"></div>'
                         '</div>'
                         '</div>'
                     )
@@ -477,9 +480,9 @@ try:
                     unassigned_html = (
                         '<div style="margin-bottom: 24px; direction: rtl;">'
                         '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">'
-                        '<span style="font-weight: 700; color: #1e293b; font-size: 1.05rem;">לא משויך (ללא תקציב)</span>'
-                        '<span style="color: #ef4444; font-size: 0.95rem;">'
-                        'סה"כ נוצל: <strong>₪' + f"{unassigned_spent:,.0f}" + '</strong>'
+                        '<span style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">לא משויך (ללא תקציב)</span>'
+                        '<span style="color: #ef4444; font-size: 1rem;">'
+                        'סה"כ נוצל: <strong style="color:#ef4444;">₪' + f"{unassigned_spent:,.0f}" + '</strong>'
                         '</span>'
                         '</div>'
                         '<div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">'
@@ -492,29 +495,38 @@ try:
                 html_bars += '</div>'
                 st.markdown(html_bars, unsafe_allow_html=True)
                 
-                st.markdown("<hr style='margin: 40px 0; border: 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+                st.markdown("<hr style='margin: 40px 0; border: 0; border-top: 2px solid #e2e8f0;'>", unsafe_allow_html=True)
                 
-                l_col, r_col = st.columns(2)
-                with l_col:
-                    st.markdown("<h4 style='color: #0f172a;'>🧾 רשימת העסקאות מהקובץ</h4>", unsafe_allow_html=True)
-                    show_up = df_up[["תאריך", "שם עסק באשראי", "קטגוריה_לתצוגה", "סכום"]].copy()
-                    show_up["סכום"] = show_up["סכום"].map(lambda x: f"₪{x:,.0f}")
-                    st.dataframe(show_up, use_container_width=True, hide_index=True)
+                # סידור העמודות: למעלה הגרף, למטה הטבלה (כדי שהגרף לא יחתך במובייל)
+                st.markdown("<h3 style='color: #1e293b; text-align:center; margin-bottom:20px;'>🍩 התפלגות קטגוריות</h3>", unsafe_allow_html=True)
                 
-                with r_col:
-                    st.markdown("<h4 style='color: #0f172a;'>🍩 התפלגות קטגוריות</h4>", unsafe_allow_html=True)
-                    up_cat = df_up.groupby("קטגוריה_לתצוגה")["סכום"].sum().reset_index().sort_values("סכום", ascending=False)
-                    
-                    # גרף מעוצב ומרשים יותר
-                    fig_up = px.pie(up_cat, names="קטגוריה_לתצוגה", values="סכום", hole=0.55, 
-                                    color_discrete_sequence=px.colors.sequential.Teal)
-                    fig_up.update_layout(
-                        margin=dict(l=0, r=0, t=20, b=0), 
-                        height=380,
-                        font=dict(family="Heebo", size=14),
-                        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
+                up_cat = df_up.groupby("קטגוריה_לתצוגה")["סכום"].sum().reset_index().sort_values("סכום", ascending=False)
+                
+                # גרף צבעוני ועשיר שמותאם למסכים קטנים
+                fig_up = px.pie(up_cat, names="קטגוריה_לתצוגה", values="סכום", hole=0.45,
+                                color_discrete_sequence=px.colors.qualitative.Prism) # פלטת צבעים עשירה וברורה
+                
+                # עיצוב מותאם מובייל (המקרא מתחת לגרף ולא נחתך)
+                fig_up.update_layout(
+                    margin=dict(l=20, r=20, t=20, b=20),
+                    height=500,
+                    font=dict(family="Heebo", size=14),
+                    legend=dict(
+                        orientation="h",
+                        yanchor="top",
+                        y=-0.1,
+                        xanchor="center",
+                        x=0.5
                     )
-                    st.plotly_chart(fig_up, use_container_width=True)
+                )
+                fig_up.update_traces(textposition='inside', textinfo='percent+label')
+                
+                st.plotly_chart(fig_up, use_container_width=True)
+                
+                st.markdown("<h3 style='color: #1e293b; margin-top:30px; margin-bottom:15px;'>🧾 פירוט העסקאות</h3>", unsafe_allow_html=True)
+                show_up = df_up[["תאריך", "שם עסק באשראי", "קטגוריה_לתצוגה", "סכום"]].copy()
+                show_up["סכום"] = show_up["סכום"].map(lambda x: f"₪{x:,.0f}")
+                st.dataframe(show_up, use_container_width=True, hide_index=True)
                     
             elif df_up is not None and df_up.empty:
                 st.warning("הקובץ נקרא בהצלחה, אך לא נמצאו בו שורות תקינות עם תאריך וסכום.")
