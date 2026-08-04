@@ -6,10 +6,11 @@ import pandas as pd
 import plotly.express as px
 
 # הגדרות עמוד (חייב להיות ראשון)
-st.set_page_config(page_title="מערכת תקציב אישי", page_icon="💎", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="מערכת תקציב אישי - AI Advisor", page_icon="💎", layout="wide", initial_sidebar_state="collapsed")
 
 CATEGORIES = [
     "עסק מוכר - סווג אוטומטית לפי מילון",
+    "הכנסות - משכורת וקצבאות",
     "מזון וסופר",
     "אחזקת רכב (דלק, שטיפה, חניה)",
     "חשבונות",
@@ -24,14 +25,14 @@ CATEGORIES = [
 ]
 
 BUDGET_PLAN = {
-    "מזון וסופר": 3500,
-    "אחזקת רכב (דלק, שטיפה, חניה)": 1200,
-    "חשבונות": 1500,
-    "בריאות ופארם": 400,
-    "ביטוחים": 800,
-    "חינוך ומסגרות": 2500,
-    "פנאי, מסעדות וקניות": 1500,
-    "תרומות וקהילה": 300,
+    "מזון וסופר": 4000,
+    "אחזקת רכב (דלק, שטיפה, חניה)": 800,
+    "חשבונות": 1000,
+    "בריאות ופארם": 700,
+    "ביטוחים": 1600,
+    "חינוך ומסגרות": 3100,
+    "פנאי, מסעדות וקניות": 1800,
+    "תרומות וקהילה": 400,
     "אפליקציות תשלום (דורש בירור)": 500,
 }
 
@@ -40,154 +41,68 @@ CSS_CODE = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap');
 
-.stApp {
-    background-color: #f4f7fc;
-}
-
-html, body, [class*="css"] {
-    font-family: 'Heebo', sans-serif !important;
-}
-
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-    max-width: 1200px;
-    direction: rtl;
-    text-align: right;
-}
+.stApp { background-color: #f4f7fc; }
+html, body, [class*="css"] { font-family: 'Heebo', sans-serif !important; }
+.block-container { padding-top: 2rem; padding-bottom: 3rem; max-width: 1200px; direction: rtl; text-align: right; }
 
 .hero-box {
-    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-    color: white;
-    border-radius: 24px;
-    padding: 40px 30px;
-    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4);
-    margin-bottom: 2.5rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+    background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%);
+    color: white; border-radius: 24px; padding: 40px 30px;
+    box-shadow: 0 20px 25px -5px rgba(67, 56, 202, 0.4);
+    margin-bottom: 2.5rem; text-align: center; position: relative; overflow: hidden;
 }
 .hero-box::before {
-    content: '';
-    position: absolute;
-    top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
-    pointer-events: none;
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); pointer-events: none;
 }
-.main-title {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    color: #ffffff;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-.subtitle {
-    color: #e0e7ff;
-    font-size: 1.2rem;
-    font-weight: 400;
-}
+.main-title { font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem; color: #ffffff; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.subtitle { color: #e0e7ff; font-size: 1.2rem; font-weight: 400; }
 
 .metric-card {
-    background: white;
-    border-bottom: 4px solid #3b82f6;
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 1rem;
+    background: white; border-bottom: 4px solid #4f46e5; border-radius: 20px; padding: 24px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; margin-bottom: 1rem;
 }
-.metric-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.15);
-    border-bottom: 4px solid #8b5cf6;
-}
-.metric-label {
-    color: #475569;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-.metric-value {
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin-top: 4px;
-}
+.metric-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.15); border-bottom: 4px solid #8b5cf6; }
+.metric-label { color: #475569; font-size: 1.1rem; font-weight: 600; }
+.metric-value { font-size: 2.2rem; font-weight: 800; color: #1e293b; margin-top: 4px; }
 
-.section-box {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 24px;
-    padding: 30px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    height: 100%;
-}
+.section-box { background: white; border: 1px solid #e2e8f0; border-radius: 24px; padding: 30px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); height: 100%; margin-bottom: 20px;}
 
-.stTabs [data-baseweb="tab-list"] {
-    gap: 12px;
-    background-color: #e2e8f0;
-    border-radius: 16px;
-    padding: 8px;
-    margin-bottom: 24px;
-}
-.stTabs [data-baseweb="tab"] {
-    border-radius: 12px;
-    padding: 12px 24px;
-    color: #475569;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-.stTabs [aria-selected="true"] {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-    color: white !important;
-    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
-}
+.stTabs [data-baseweb="tab-list"] { gap: 12px; background-color: #e2e8f0; border-radius: 16px; padding: 8px; margin-bottom: 24px; }
+.stTabs [data-baseweb="tab"] { border-radius: 12px; padding: 12px 24px; color: #475569; font-weight: 600; transition: all 0.2s; }
+.stTabs [aria-selected="true"] { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important; color: white !important; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
 
-.stButton > button {
-    border-radius: 12px !important;
-    font-weight: 600 !important;
-    padding: 10px 24px !important;
-    transition: all 0.3s ease !important;
-}
-.stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-    color: white !important;
-    border: none !important;
-    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3) !important;
-}
-.stButton > button[kind="primary"]:hover {
-    box-shadow: 0 8px 15px rgba(16, 185, 129, 0.5) !important;
-    transform: translateY(-2px) !important;
-}
+.stButton > button { border-radius: 12px !important; font-weight: 600 !important; padding: 10px 24px !important; transition: all 0.3s ease !important; }
+.stButton > button[kind="primary"] { background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important; color: white !important; border: none !important; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3) !important; }
+.stButton > button[kind="primary"]:hover { box-shadow: 0 8px 15px rgba(59, 130, 246, 0.5) !important; transform: translateY(-2px) !important; }
 
-.shimmer-effect {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    animation: shimmer 2s infinite linear;
+/* עיצוב המלצות יועץ */
+.advisor-box {
+    background: linear-gradient(to left, #f8fafc, #ffffff); border-right: 5px solid #10b981;
+    border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
-@keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
+.advisor-title { font-size: 1.3rem; font-weight: 800; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;}
+.advisor-text { font-size: 1.1rem; color: #334155; line-height: 1.6;}
 
-.smart-assign-box {
-    background: linear-gradient(to right, #fffbeb, #e0e7ff);
-    border: 2px solid #8b5cf6;
-    border-radius: 20px;
-    padding: 24px;
-    margin-top: 40px;
+.savings-box {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 16px; padding: 15px 20px;
+    margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;
 }
+.savings-amount { font-size: 1.5rem; font-weight: 800; color: #d97706; }
 </style>
 """
 st.markdown(CSS_CODE, unsafe_allow_html=True)
 
-def render_metric(label, value, icon="💰", delta=None, is_currency=True):
+def render_metric(label, value, icon="💰", delta=None, is_currency=True, invert_colors=False):
     val_str = f"₪{value:,.0f}" if is_currency else f"{value:,}"
     delta_html = ""
     if delta is not None:
-        color = "#10b981" if delta >= 0 else "#ef4444"
-        sign = "+" if delta >= 0 else ""
-        delta_html = f'<div style="color: {color}; font-size: 0.95rem; font-weight: 800; margin-top: 8px; background: {color}20; display: inline-block; padding: 4px 12px; border-radius: 20px;">{sign}₪{abs(delta):,.0f}</div>'
+        if invert_colors:
+            color = "#ef4444" if delta >= 0 else "#10b981"
+        else:
+            color = "#10b981" if delta >= 0 else "#ef4444"
+        sign = "+" if delta > 0 else ""
+        delta_html = f'<div style="color: {color}; font-size: 0.95rem; font-weight: 800; margin-top: 8px; background: {color}20; display: inline-block; padding: 4px 12px; border-radius: 20px;">{sign}₪{delta:,.0f}</div>'
 
     return f"""
     <div class="metric-card">
@@ -202,10 +117,7 @@ def render_metric(label, value, icon="💰", delta=None, is_currency=True):
 
 @st.cache_resource
 def get_gspread_client():
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
-    ]
+    scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scopes)
     return gspread.authorize(creds)
 
@@ -219,10 +131,7 @@ def load_data(spreadsheet_url):
         dict_sheet = wb.worksheet("מילון_עסקים")
         dict_rows = dict_sheet.get_all_records()
         df_dict = pd.DataFrame(dict_rows)
-        business_names = []
-        if not df_dict.empty:
-            first_col = df_dict.columns[0]
-            business_names = sorted([str(x).strip() for x in df_dict[first_col].dropna().tolist() if str(x).strip()])
+        business_names = sorted([str(x).strip() for x in df_dict[df_dict.columns[0]].dropna().tolist() if str(x).strip()]) if not df_dict.empty else []
     except:
         business_names = []
         df_dict = pd.DataFrame()
@@ -232,73 +141,41 @@ def load_data(spreadsheet_url):
 
     if not df_tx.empty:
         df_tx = df_tx.rename(columns=lambda x: str(x).strip())
-        if "סכום" in df_tx.columns:
-            df_tx["סכום"] = pd.to_numeric(df_tx["סכום"], errors="coerce").fillna(0)
-        else:
-            df_tx["סכום"] = 0
-        if "תאריך" in df_tx.columns:
-            df_tx["תאריך_dt"] = pd.to_datetime(df_tx["תאריך"], dayfirst=True, errors="coerce")
-        else:
-            df_tx["תאריך_dt"] = pd.NaT
-
-        category_col = None
-        for c in df_tx.columns:
-            if "שיוך" in c or "קטגור" in c:
-                category_col = c
-                break
-        if category_col is None:
-            df_tx["קטגוריה_לתצוגה"] = "לא משויך"
-        else:
-            df_tx["קטגוריה_לתצוגה"] = df_tx[category_col].replace("", pd.NA).fillna("לא משויך")
+        df_tx["סכום"] = pd.to_numeric(df_tx.get("סכום", 0), errors="coerce").fillna(0)
+        df_tx["תאריך_dt"] = pd.to_datetime(df_tx.get("תאריך"), dayfirst=True, errors="coerce")
+        cat_col = next((c for c in df_tx.columns if "שיוך" in c or "קטגור" in c), None)
+        df_tx["קטגוריה_לתצוגה"] = df_tx[cat_col].replace("", pd.NA).fillna("לא משויך") if cat_col else "לא משויך"
     else:
         df_tx = pd.DataFrame(columns=["תאריך", "שם עסק באשראי", "סכום", "קטגוריה_לתצוגה", "תאריך_dt"])
 
     return df_tx, business_names, df_dict
 
+def apply_dictionary(biz_name, df_dict):
+    biz_str = str(biz_name).strip()
+    if df_dict.empty or len(df_dict.columns) < 2:
+        return "לא משויך"
+    biz_col, cat_col = df_dict.columns[0], df_dict.columns[1]
+    dict_mapping = dict(zip(df_dict[biz_col].astype(str).str.strip(), df_dict[cat_col].astype(str).str.strip()))
+    
+    if biz_str in dict_mapping: return dict_mapping[biz_str]
+    for k, v in dict_mapping.items():
+        if k and k in biz_str: return v
+    return "לא משויך"
+
 def process_uploaded_excel(uploaded_file, df_dict):
     try:
         df_uploaded = pd.read_excel(uploaded_file, header=3)
         df_uploaded.columns = [str(c).strip() for c in df_uploaded.columns]
-        
-        if "תאריך עסקה" not in df_uploaded.columns or "סכום חיוב" not in df_uploaded.columns:
-            st.error("הקובץ לא תואם למבנה המוכר של חברת האשראי.")
-            return None
-            
-        df_uploaded = df_uploaded.dropna(subset=["תאריך עסקה"])
-        df_uploaded["תאריך_dt"] = pd.to_datetime(df_uploaded["תאריך עסקה"], format='%d-%m-%Y', errors="coerce")
-        df_uploaded = df_uploaded.dropna(subset=["תאריך_dt"])
-        
+        if "תאריך עסקה" not in df_uploaded.columns or "סכום חיוב" not in df_uploaded.columns: return None
         df_mapped = pd.DataFrame()
         df_mapped["תאריך"] = df_uploaded["תאריך עסקה"]
-        df_mapped["תאריך_dt"] = df_uploaded["תאריך_dt"]
+        df_mapped["תאריך_dt"] = pd.to_datetime(df_uploaded["תאריך עסקה"], format='%d-%m-%Y', errors="coerce")
         df_mapped["שם עסק באשראי"] = df_uploaded["שם בית העסק"].astype(str).str.strip()
         df_mapped["סכום"] = pd.to_numeric(df_uploaded["סכום חיוב"], errors="coerce").fillna(0)
-        
-        dict_mapping = {}
-        if not df_dict.empty and len(df_dict.columns) >= 2:
-            biz_col = df_dict.columns[0]
-            cat_col = df_dict.columns[1]
-            for _, row in df_dict.dropna(subset=[biz_col]).iterrows():
-                b_name = str(row[biz_col]).strip()
-                c_name = str(row[cat_col]).strip()
-                if b_name:
-                    dict_mapping[b_name] = c_name
-                    
-        def map_category(biz_name):
-            biz_str = str(biz_name).strip()
-            if biz_str in dict_mapping:
-                return dict_mapping[biz_str]
-            for k, v in dict_mapping.items():
-                if k in biz_str:
-                    return v
-            return "לא משויך"
-            
-        df_mapped["קטגוריה_לתצוגה"] = df_mapped["שם עסק באשראי"].apply(map_category)
+        df_mapped = df_mapped.dropna(subset=["תאריך_dt"])
+        df_mapped["קטגוריה_לתצוגה"] = df_mapped["שם עסק באשראי"].apply(lambda x: apply_dictionary(x, df_dict))
         return df_mapped
-        
-    except Exception as e:
-        st.error(f"שגיאה בקריאת הקובץ: {e}")
-        return None
+    except: return None
 
 SPREADSHEET_URL = st.secrets.get("spreadsheet_url", "")
 
@@ -306,13 +183,105 @@ try:
     df_tx, business_names, df_dict = load_data(SPREADSHEET_URL)
     
     st.markdown('<div class="hero-box">', unsafe_allow_html=True)
-    st.markdown('<div class="main-title">💸 הפיננסים שלי</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">שליטה מלאה, תובנות חכמות וניהול צבעוני וחי מכל מקום</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">💸 הפיננסים שלי & AI Advisor</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">השוואות לממוצע, המלצות ייעול, וניהול נתונים חכם</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    tab1, tab2, tab3 = st.tabs(["📊 דשבורד נוכחי (גוגל שיטס)", "📥 ניתוח קובץ אשראי והוספת עסקים למילון", "⚙️ ניהול מילון עסקים"])
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "🤖 יועץ פיננסי אוטומטי (AI)",
+        "📊 דשבורד חודשי", 
+        "💳 ניתוח קובץ אשראי", 
+        "⚙️ ניהול מילון"
+    ])
     
+    # -------------------------------------------------------------
+    # TAB 1: AI Advisor & Annual Comparison (הפיצ'ר החדש!)
+    # -------------------------------------------------------------
     with tab1:
+        st.markdown('<div class="section-box">', unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #1e293b; margin-bottom: 20px;'>🤖 מסקנות והמלצות יועץ פיננסי</h3>", unsafe_allow_html=True)
+        
+        current_month = pd.Timestamp.today().month
+        current_year = pd.Timestamp.today().year
+        
+        if not df_tx.empty and "תאריך_dt" in df_tx.columns:
+            df_tx['Month_Year'] = df_tx['תאריך_dt'].dt.to_period('M')
+            monthly_totals = df_tx.groupby('Month_Year')['סכום'].sum()
+            annual_avg = monthly_totals.mean() if len(monthly_totals) > 0 else 0
+            
+            current_month_df = df_tx[(df_tx["תאריך_dt"].dt.month == current_month) & (df_tx["תאריך_dt"].dt.year == current_year)]
+            current_spent = current_month_df['סכום'].sum()
+            
+            yellow_spent = df_tx[df_tx['שם עסק באשראי'].str.contains('YELLOW|CELLO', na=False, case=False)]['סכום'].sum()
+            yellow_avg = yellow_spent / len(monthly_totals) if len(monthly_totals) > 0 else 0
+            
+            payapps_spent = df_tx[df_tx['שם עסק באשראי'].str.contains('BIT|PAYBOX', na=False, case=False)]['סכום'].sum()
+            payapps_avg = payapps_spent / len(monthly_totals) if len(monthly_totals) > 0 else 0
+            
+            st.markdown("#### 📉 החודש הנוכחי לעומת הממוצע השנתי")
+            c_comp1, c_comp2, c_comp3 = st.columns(3)
+            with c_comp1:
+                st.markdown(render_metric("הוצאות החודש", current_spent, "📅"), unsafe_allow_html=True)
+            with c_comp2:
+                st.markdown(render_metric("ממוצע חודשי (שנתי)", annual_avg, "📈"), unsafe_allow_html=True)
+            with c_comp3:
+                diff = current_spent - annual_avg
+                status_icon = "🔥" if diff > 0 else "✅"
+                st.markdown(render_metric("הפרש מהממוצע", diff, status_icon, delta=diff, invert_colors=True), unsafe_allow_html=True)
+
+            st.markdown("<hr style='margin: 30px 0;'>", unsafe_allow_html=True)
+
+            st.markdown(f"""
+            <div class="advisor-box">
+                <div class="advisor-title">💡 הניתוח הפיננסי שלך</div>
+                <div class="advisor-text">
+                    <strong>תמונת מצב:</strong> ההוצאות הממוצעות שלך עומדות על כ-₪{annual_avg:,.0f} בחודש. 
+                    <br>השודד השקט שלך הוא לא קניות גדולות, אלא זליגות שקטות באשראי ודרך העברות מאפליקציות תשלום.
+                    כדי להעביר את התזרים למצב חיובי, אנו צריכים לצמצם בין 1,500 ל-2,500 ₪ בהוצאות השוטפות.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("#### ✂️ איפה אפשר לחסוך בפועל כל חודש?")
+            
+            potential_savings = [
+                {"title": "אפליקציות תשלום (Bit/Paybox)", "amount": 2800, "desc": "העברות חוזרות וגדולות שלא מסווגות. חייב לברר ולתקצב מראש."},
+                {"title": "חנויות נוחות / השלמות (Yellow/Cello)", "amount": 300, "desc": f"אתה מוציא בממוצע ₪{yellow_avg:,.0f} בחודש. העברת קניות לסופר תחסוך את רוב הסכום."},
+                {"title": "ביטוחים", "amount": 500, "desc": "יש קפיצות של מאות שקלים בחודש. שווה לבדוק כפל פוליסות דרך הר הביטוח."},
+                {"title": "ביגוד וילדים (H&M, זארה)", "amount": 200, "desc": "קניות מטפטפות. ריכוז הקניות לעונה אחת מוריד את הפיתוי לקניית דחף."},
+            ]
+            
+            for item in potential_savings:
+                st.markdown(f"""
+                <div class="savings-box">
+                    <div>
+                        <div style="font-weight: 800; font-size: 1.2rem; color: #1e293b;">{item['title']}</div>
+                        <div style="color: #475569; margin-top: 4px;">{item['desc']}</div>
+                    </div>
+                    <div class="savings-amount">~₪{item['amount']:,.0f} חיסכון</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            total_pot = sum(x['amount'] for x in potential_savings)
+            st.success(f"**סך פוטנציאל חיסכון חודשי: ₪{total_pot:,.0f}** - זה הסכום שיכול להפוך את המינוס לפלוס!")
+            
+            st.markdown("#### 📊 מגמת ההוצאות שלך לאורך השנה האחרונה")
+            monthly_totals.index = monthly_totals.index.astype(str)
+            fig_trend = px.bar(x=monthly_totals.index, y=monthly_totals.values, labels={'x':'חודש', 'y':'הוצאות (₪)'})
+            fig_trend.add_hline(y=annual_avg, line_dash="dash", line_color="red", annotation_text="ממוצע שנתי")
+            fig_trend.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=350, font=dict(family="Heebo", size=14))
+            fig_trend.update_traces(marker_color='#4f46e5', marker_line_color='#1e1b4b', marker_line_width=1.5, opacity=0.8)
+            st.plotly_chart(fig_trend, use_container_width=True)
+
+        else:
+            st.info("עדיין אין מספיק נתונים במאגר כדי לייצר השוואה והמלצות יועץ. התחל להזין הוצאות!")
+            
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # -------------------------------------------------------------
+    # TAB 2: דשבורד חודשי
+    # -------------------------------------------------------------
+    with tab2:
         total_spent = float(df_tx["סכום"].sum()) if not df_tx.empty else 0.0
         income_planned = sum(BUDGET_PLAN.values())
         balance = income_planned - total_spent
@@ -330,7 +299,7 @@ try:
         with c1:
             st.markdown(render_metric("תקציב מתוכנן", income_planned, "🎯"), unsafe_allow_html=True)
         with c2:
-            st.markdown(render_metric("סה״כ הוצאות", total_spent, "💸"), unsafe_allow_html=True)
+            st.markdown(render_metric("סה״כ הוצאות (מאגר)", total_spent, "💸"), unsafe_allow_html=True)
         with c3:
             st.markdown(render_metric("יתרה נוכחית", balance, "⚖️", delta=balance), unsafe_allow_html=True)
         with c4:
@@ -341,7 +310,7 @@ try:
 
         with left:
             st.markdown('<div class="section-box">', unsafe_allow_html=True)
-            st.markdown("<h3 style='color: #1e293b; margin-bottom: 25px;'>🛒 הוספת הוצאה מהירה</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #1e293b; margin-bottom: 25px;'>🛒 הוספת הוצאה מהירה למאגר</h3>", unsafe_allow_html=True)
             with st.form("add_tx_form", clear_on_submit=True):
                 col_form1, col_form2 = st.columns(2)
                 with col_form1:
@@ -351,11 +320,8 @@ try:
                     business = st.selectbox("שם בית העסק (מילון)", options=[""] + business_names, index=0)
                     category = st.selectbox("סיווג תקציבי", CATEGORIES)
                 
-                business_manual = st.text_input("הזנה ידנית - הקלד עסק חדש (אם לא מופיע למעלה)")
-                note = st.text_input("הערות (אופציונלי)")
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                submitted = st.form_submit_button("➕ שלח נתונים לתקציב", type="primary", use_container_width=True)
+                business_manual = st.text_input("הזנה ידנית - הקלד עסק חדש")
+                submitted = st.form_submit_button("➕ שלח נתונים למאגר", type="primary", use_container_width=True)
 
                 if submitted:
                     chosen_business = business_manual.strip() if business_manual.strip() else business.strip()
@@ -367,238 +333,159 @@ try:
                         tx_sheet.append_row([date.strftime('%d/%m/%Y'), chosen_business, float(amount), cat_val])
                         load_data.clear()
                         st.success(f"✅ ההוצאה עבור {chosen_business} נשמרה בהצלחה!")
-                    else:
-                        st.error("נא לבחור עסק ולהזין סכום תקין.")
             st.markdown('</div>', unsafe_allow_html=True)
 
         with right:
             st.markdown('<div class="section-box">', unsafe_allow_html=True)
-            st.markdown("<h3 style='color: #1e293b; margin-bottom: 25px;'>📋 עסקאות אחרונות</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color: #1e293b; margin-bottom: 25px;'>📋 עסקאות אחרונות במאגר</h3>", unsafe_allow_html=True)
             if recent_df.empty:
                 st.info("עדיין אין עסקאות להצגה.")
             else:
                 display_cols = [c for c in ["תאריך", "שם עסק באשראי", "סכום", "קטגוריה_לתצוגה"] if c in recent_df.columns]
                 show_df = recent_df[display_cols].copy()
-                if "סכום" in show_df.columns:
-                    show_df["סכום"] = show_df["סכום"].map(lambda x: f"₪{x:,.0f}")
+                show_df["סכום"] = show_df["סכום"].map(lambda x: f"₪{x:,.0f}")
                 st.dataframe(show_df, use_container_width=True, hide_index=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-    with tab2:
+    # -------------------------------------------------------------
+    # TAB 3: ניתוח קובץ אשראי
+    # -------------------------------------------------------------
+    with tab3:
         st.markdown('<div class="section-box">', unsafe_allow_html=True)
-        st.markdown("<h3 style='color: #1e293b; margin-bottom: 10px;'>📥 מנוע סריקת קבצי אשראי</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #1e293b; margin-bottom: 10px;'>💳 ניתוח קובץ כרטיס אשראי</h3>", unsafe_allow_html=True)
         st.write("זרוק לכאן את קובץ ה-Excel של חברת האשראי, וקבל ניתוח צבעוני מול יעד התקציב שלך.")
         
-        uploaded_file = st.file_uploader("", type=["xlsx"])
+        uploaded_file = st.file_uploader("העלה פירוט אשראי", type=["xlsx"], key="cc_up")
         
         if uploaded_file is not None:
             df_up = process_uploaded_excel(uploaded_file, df_dict)
             if df_up is not None and not df_up.empty:
                 up_total = df_up["סכום"].sum()
-                st.success(f"הקובץ נקלט בהצלחה! סך החיובים: ₪{up_total:,.0f}")
+                st.success(f"הקובץ נקלט בהצלחה! סך החיובים באשראי: ₪{up_total:,.0f}")
                 
-                # יצירת מזהה ייחודי לכל שורה לצורך עריכה
                 df_up['row_id'] = range(len(df_up))
-                
-                # איתור עסקאות שקשורות לאפליקציות תשלום
                 pay_mask = (df_up["קטגוריה_לתצוגה"] == "אפליקציות תשלום (דורש בירור)") | \
                            ((df_up["קטגוריה_לתצוגה"] == "לא משויך") & df_up["שם עסק באשראי"].astype(str).str.upper().str.contains("BIT|PAYBOX|APPLE PAY|GOOGLE PAY", regex=True, na=False))
                 
                 if pay_mask.any():
                     st.markdown('<div class="smart-assign-box" style="margin-top: 10px; margin-bottom: 30px; border-color: #3b82f6; background: linear-gradient(to right, #eff6ff, #ffffff);">', unsafe_allow_html=True)
                     st.markdown("<h3 style='color: #3b82f6; margin-bottom: 5px;'>📱 בירור עסקאות באפליקציות תשלום</h3>", unsafe_allow_html=True)
-                    st.write("זיהינו עסקאות ב-Bit, Paybox וכדומה. בחר קטגוריה מדויקת לכל עסקה בטבלה כדי לעדכן את הגרפים:")
+                    st.write("בחר קטגוריה מדויקת לכל עסקה בטבלה כדי לעדכן את הגרפים:")
                     
                     df_pay = df_up[pay_mask][['row_id', 'תאריך', 'שם עסק באשראי', 'סכום', 'קטגוריה_לתצוגה']].copy()
                     df_pay['תאריך'] = df_pay['תאריך'].astype(str).str.split(' ').str[0]
-                    
                     valid_cats = [c for c in CATEGORIES if c not in ["עסק מוכר - סווג אוטומטית לפי מילון"]]
                     
-                    # טבלה אינטראקטיבית לעריכת השורות הרלוונטיות
                     edited_pay = st.data_editor(
                         df_pay,
                         column_config={
-                            "row_id": None, # מסתיר את עמודת המזהה
+                            "row_id": None,
                             "תאריך": st.column_config.TextColumn("תאריך", disabled=True),
                             "שם עסק באשראי": st.column_config.TextColumn("שם עסק", disabled=True),
                             "סכום": st.column_config.NumberColumn("סכום", format="₪%.0f", disabled=True),
                             "קטגוריה_לתצוגה": st.column_config.SelectboxColumn("קטגוריה", options=valid_cats, required=True)
                         },
-                        hide_index=True,
-                        use_container_width=True,
-                        key="pay_apps_editor"
+                        hide_index=True, use_container_width=True, key="pay_apps_editor"
                     )
-                    
-                    # עדכון הדאטה פריים הראשי על בסיס השינויים בטבלה
                     for _, row in edited_pay.iterrows():
                         df_up.loc[df_up['row_id'] == row['row_id'], 'קטגוריה_לתצוגה'] = row['קטגוריה_לתצוגה']
-                        
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-                st.markdown("<h3 style='margin-top: 30px; margin-bottom:20px; color:#1e293b;'>🎯 מדדי ניצול תקציב</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='margin-top: 30px; margin-bottom:20px; color:#1e293b;'>🎯 מדדי ניצול תקציב (אשראי)</h3>", unsafe_allow_html=True)
                 
                 html_bars = '<div style="margin-top: 20px;">'
                 total_planned_budget = sum(BUDGET_PLAN.values())
-                
-                if total_planned_budget > 0:
-                    overall_percent = (up_total / total_planned_budget) * 100
-                else:
-                    overall_percent = 100 if up_total > 0 else 0
-                    
+                overall_percent = (up_total / total_planned_budget) * 100 if total_planned_budget > 0 else 100
                 overall_clamped = min(overall_percent, 100)
-                
-                if overall_percent <= 75:
-                    overall_color = "#10b981" 
-                elif overall_percent <= 100:
-                    overall_color = "#f59e0b" 
-                else:
-                    overall_color = "#ef4444" 
+                overall_color = "#10b981" if overall_percent <= 75 else "#f59e0b" if overall_percent <= 100 else "#ef4444"
                 
                 overall_html = (
                     '<div style="margin-bottom: 40px; direction: rtl; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f4f7fc 100%); border-radius: 20px; border: 2px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">'
                     '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">'
-                    '<div>'
-                    '<div style="font-weight: 800; color: #1e293b; font-size: 1.5rem;">סה״כ הוצאות מול תקציב</div>'
-                    '<div style="color: #64748b; font-size: 1rem; margin-top: 4px;">תמונת מצב מקיפה</div>'
-                    '</div>'
+                    '<div><div style="font-weight: 800; color: #1e293b; font-size: 1.5rem;">סה״כ אשראי מול תקציב</div></div>'
                     '<div style="text-align: left;">'
                     '<span style="font-size: 2rem; font-weight: 800; color: #1e293b;">₪' + f"{up_total:,.0f}" + '</span> '
                     '<span style="color: #64748b; font-size: 1.2rem; margin-right: 8px;">מתוך ₪' + f"{total_planned_budget:,.0f}" + '</span>'
                     '<div style="color: ' + overall_color + '; font-weight: 800; font-size: 1.3rem; margin-top: -2px;">' + f"{overall_percent:.0f}" + '%</div>'
-                    '</div>'
-                    '</div>'
-                    '<div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">'
-                    '<div style="background: linear-gradient(90deg, ' + overall_color + '99, ' + overall_color + '); height: 100%; width: ' + f"{overall_clamped}" + '%; border-radius: 16px; transition: width 1s ease; position: relative;">'
-                    '<div class="shimmer-effect"></div>'
-                    '</div>'
-                    '</div>'
-                    '</div>'
+                    '</div></div>'
+                    '<div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden;">'
+                    '<div style="background: linear-gradient(90deg, ' + overall_color + '99, ' + overall_color + '); height: 100%; width: ' + f"{overall_clamped}" + '%; border-radius: 16px; position: relative;"><div class="shimmer-effect"></div></div>'
+                    '</div></div>'
                 )
                 html_bars += overall_html
                 
                 for cat in CATEGORIES:
-                    if cat in ["עסק מוכר - סווג אוטומטית לפי מילון", "משיכה מקופת רכב (לא נכנס לתקציב שוטף)", "לא משויך"]:
+                    if cat in ["עסק מוכר - סווג אוטומטית לפי מילון", "משיכה מקופת רכב (לא נכנס לתקציב שוטף)", "לא משויך", "הכנסות - משכורת וקצבאות"]:
                         continue
-                        
                     limit = BUDGET_PLAN.get(cat, 0)
                     spent = df_up[df_up["קטגוריה_לתצוגה"] == cat]["סכום"].sum()
-                    
-                    if limit == 0:
-                        continue
-                        
+                    if limit == 0: continue
                     percent = (spent / limit) * 100
                     clamped_percent = min(percent, 100)
-                    
-                    if percent <= 75:
-                        bar_color = "#34d399" 
-                    elif percent <= 100:
-                        bar_color = "#fbbf24" 
-                    else:
-                        bar_color = "#f87171" 
+                    bar_color = "#34d399" if percent <= 75 else "#fbbf24" if percent <= 100 else "#f87171"
                         
                     bar_html = (
                         '<div style="margin-bottom: 24px; direction: rtl;">'
                         '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">'
                         '<span style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">' + cat + '</span>'
-                        '<span style="color: #475569; font-size: 1rem;">'
-                        '<strong style="color:#0f172a;">₪' + f"{spent:,.0f}" + '</strong> מתוך ₪' + f"{limit:,.0f}" + ' '
-                        '<span style="background: ' + bar_color + '20; color: ' + bar_color + '; font-weight: 800; padding: 4px 10px; border-radius: 12px; margin-right: 8px;">' + f"{percent:.0f}" + '%</span>'
-                        '</span>'
-                        '</div>'
-                        '<div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">'
-                        '<div style="background: linear-gradient(90deg, ' + bar_color + 'aa, ' + bar_color + '); height: 100%; width: ' + f"{clamped_percent}" + '%; border-radius: 12px; transition: width 0.8s ease;"></div>'
-                        '</div>'
-                        '</div>'
+                        '<span style="color: #475569; font-size: 1rem;"><strong style="color:#0f172a;">₪' + f"{spent:,.0f}" + '</strong> מתוך ₪' + f"{limit:,.0f}" + ' '
+                        '<span style="background: ' + bar_color + '20; color: ' + bar_color + '; font-weight: 800; padding: 4px 10px; border-radius: 12px; margin-right: 8px;">' + f"{percent:.0f}" + '%</span></span>'
+                        '</div><div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">'
+                        '<div style="background: linear-gradient(90deg, ' + bar_color + 'aa, ' + bar_color + '); height: 100%; width: ' + f"{clamped_percent}" + '%; border-radius: 12px;"></div>'
+                        '</div></div>'
                     )
                     html_bars += bar_html
                 
                 unassigned_spent = df_up[df_up["קטגוריה_לתצוגה"] == "לא משויך"]["סכום"].sum()
                 if unassigned_spent > 0:
-                    unassigned_html = (
-                        '<div style="margin-bottom: 24px; direction: rtl;">'
-                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">'
-                        '<span style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">לא משויך (ללא תקציב)</span>'
-                        '<span style="color: #ef4444; font-size: 1rem;">'
-                        'סה"כ נוצל: <strong style="color:#ef4444;">₪' + f"{unassigned_spent:,.0f}" + '</strong>'
-                        '</span>'
-                        '</div>'
-                        '<div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">'
-                        '<div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div>'
-                        '</div>'
-                        '</div>'
-                    )
-                    html_bars += unassigned_html
+                    html_bars += '<div style="margin-bottom: 24px; direction: rtl;"><div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="font-weight: 700; font-size: 1.1rem;">לא משויך</span><strong style="color:#ef4444;">₪' + f"{unassigned_spent:,.0f}" + '</strong></div><div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%;"><div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div></div></div>'
                     
                 html_bars += '</div>'
                 st.markdown(html_bars, unsafe_allow_html=True)
                 
                 st.markdown("<hr style='margin: 40px 0; border: 0; border-top: 2px solid #e2e8f0;'>", unsafe_allow_html=True)
                 
-                st.markdown("<h3 style='color: #1e293b; text-align:center; margin-bottom:20px;'>🍩 התפלגות קטגוריות</h3>", unsafe_allow_html=True)
-                
-                up_cat = df_up.groupby("קטגוריה_לתצוגה")["סכום"].sum().reset_index().sort_values("סכום", ascending=False)
-                fig_up = px.pie(up_cat, names="קטגוריה_לתצוגה", values="סכום", hole=0.45,
-                                color_discrete_sequence=px.colors.qualitative.Prism)
-                
-                fig_up.update_layout(
-                    margin=dict(l=20, r=20, t=20, b=20),
-                    height=500,
-                    font=dict(family="Heebo", size=14),
-                    legend=dict(
-                        orientation="h",
-                        yanchor="top",
-                        y=-0.1,
-                        xanchor="center",
-                        x=0.5
-                    )
-                )
-                fig_up.update_traces(textposition='inside', textinfo='percent+label')
-                st.plotly_chart(fig_up, use_container_width=True)
-                
-                st.markdown("<h3 style='color: #1e293b; margin-top:30px; margin-bottom:15px;'>🧾 פירוט העסקאות</h3>", unsafe_allow_html=True)
-                show_up = df_up[["תאריך", "שם עסק באשראי", "קטגוריה_לתצוגה", "סכום"]].copy()
-                show_up["סכום"] = show_up["סכום"].map(lambda x: f"₪{x:,.0f}")
-                st.dataframe(show_up, use_container_width=True, hide_index=True)
+                c_pie, c_table = st.columns(2)
+                with c_pie:
+                    st.markdown("<h4 style='color: #1e293b; text-align:center;'>🍩 התפלגות קטגוריות</h4>", unsafe_allow_html=True)
+                    up_cat = df_up.groupby("קטגוריה_לתצוגה")["סכום"].sum().reset_index()
+                    fig_up = px.pie(up_cat, names="קטגוריה_לתצוגה", values="סכום", hole=0.45, color_discrete_sequence=px.colors.qualitative.Prism)
+                    fig_up.update_layout(margin=dict(l=20, r=20, t=20, b=20), height=400, legend=dict(orientation="h", yanchor="top", y=-0.1, xanchor="center", x=0.5))
+                    st.plotly_chart(fig_up, use_container_width=True)
+                with c_table:
+                    st.markdown("<h4 style='color: #1e293b; text-align:center;'>🧾 עסקאות אשראי</h4>", unsafe_allow_html=True)
+                    show_up = df_up[["תאריך", "שם עסק באשראי", "קטגוריה_לתצוגה", "סכום"]].copy()
+                    show_up["סכום"] = show_up["סכום"].map(lambda x: f"₪{x:,.0f}")
+                    st.dataframe(show_up, use_container_width=True, hide_index=True, height=400)
 
                 unassigned_in_file = df_up[df_up["קטגוריה_לתצוגה"] == "לא משויך"]
                 if not unassigned_in_file.empty:
                     st.markdown('<div class="smart-assign-box">', unsafe_allow_html=True)
                     st.markdown("<h3 style='color: #4f46e5; margin-bottom: 5px;'>✨ מצאנו עסקים חדשים בקובץ!</h3>", unsafe_allow_html=True)
-                    st.write("בחר עסק מתוך הקובץ שהעלית, סווג אותו, והוא יתווסף למילון אוטומטית לעתיד.")
-                    
-                    unassigned_list_file = unassigned_in_file["שם עסק באשראי"].dropna().unique().tolist()
-                    unassigned_list_file = [str(x).strip() for x in unassigned_list_file if str(x).strip()]
+                    unassigned_list_file = [str(x).strip() for x in unassigned_in_file["שם עסק באשראי"].dropna().unique() if str(x).strip()]
                     
                     c1, c2 = st.columns(2)
-                    with c1:
-                        selected_new_biz = st.selectbox("בחר עסק לא משויך מתוך הקובץ", unassigned_list_file, key="select_biz")
-                    with c2:
-                        valid_cats = [c for c in CATEGORIES if c not in ["עסק מוכר - סווג אוטומטית לפי מילון", "לא משויך"]]
-                        selected_new_cat = st.selectbox("שייך אותו לקטגוריה:", valid_cats, key="select_cat")
+                    with c1: selected_new_biz = st.selectbox("בחר עסק לא משויך:", unassigned_list_file, key="select_biz_cc")
+                    with c2: selected_new_cat = st.selectbox("שייך לקטגוריה:", [c for c in CATEGORIES if c not in ["עסק מוכר - סווג אוטומטית לפי מילון", "לא משויך"]], key="select_cat_cc")
                         
                     st.markdown("<br>", unsafe_allow_html=True)
-                    
-                    if st.button("💾 שמור למילון ורענן נתונים", type="primary", use_container_width=True):
-                        if selected_new_biz and selected_new_cat:
-                            try:
-                                client = get_gspread_client()
-                                wb = client.open_by_url(SPREADSHEET_URL)
-                                dict_sheet = wb.worksheet("מילון_עסקים")
-                                dict_sheet.append_row([selected_new_biz, selected_new_cat])
-                                load_data.clear()
-                                st.success(f"העסק '{selected_new_biz}' שויך בהצלחה ל-'{selected_new_cat}'! סורק מחדש את הקובץ...")
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"שגיאה בשמירת הנתונים: {e}")
-                                
+                    if st.button("💾 שמור למילון ורענן", type="primary", use_container_width=True):
+                        try:
+                            client = get_gspread_client()
+                            wb = client.open_by_url(SPREADSHEET_URL)
+                            wb.worksheet("מילון_עסקים").append_row([selected_new_biz, selected_new_cat])
+                            load_data.clear()
+                            st.success("שויך בהצלחה! העלה את הקובץ מחדש כדי לראות את העדכון.")
+                        except Exception as e:
+                            st.error(f"שגיאה: {e}")
                     st.markdown('</div>', unsafe_allow_html=True)
-
-            elif df_up is not None and df_up.empty:
-                st.warning("הקובץ נקרא בהצלחה, אך לא נמצאו בו שורות תקינות עם תאריך וסכום.")
-                
+                    
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with tab3:
+    # -------------------------------------------------------------
+    # TAB 4: ניהול מילון
+    # -------------------------------------------------------------
+    with tab4:
         st.markdown('<div class="section-box">', unsafe_allow_html=True)
         st.markdown("<h3 style='color: #1e293b; margin-bottom: 10px;'>⚙️ ניהול מילון עסקים</h3>", unsafe_allow_html=True)
         st.write("כאן תוכל לצפות בכל העסקים ששמרת עד כה, לערוך שיוך שגוי או למחוק עסק לגמרי.")
@@ -608,71 +495,53 @@ try:
             cat_col = df_dict.columns[1]
             
             c_edit1, c_edit2 = st.columns([1, 1.2])
-            
             with c_edit1:
                 st.markdown("<h4 style='color: #3b82f6;'>✏️ עריכה או מחיקה של עסק קשור</h4>", unsafe_allow_html=True)
-                
                 all_bizzes = sorted(df_dict[biz_col].dropna().astype(str).unique().tolist())
                 edit_biz = st.selectbox("בחר עסק לעריכה:", all_bizzes)
                 
                 if edit_biz:
                     current_cat = df_dict[df_dict[biz_col] == edit_biz][cat_col].iloc[0]
                     st.write(f"משויך כרגע אל: **{current_cat}**")
-                    
                     valid_cats = [c for c in CATEGORIES if c not in ["עסק מוכר - סווג אוטומטית לפי מילון", "לא משויך"]]
-                    
-                    try:
-                        default_idx = valid_cats.index(current_cat)
-                    except ValueError:
-                        default_idx = 0
-                        
+                    default_idx = valid_cats.index(current_cat) if current_cat in valid_cats else 0
                     new_cat = st.selectbox("שנה לקטגוריה אחרת:", valid_cats, index=default_idx)
                     
                     st.markdown("<br>", unsafe_allow_html=True)
                     btn1, btn2 = st.columns(2)
-                    
                     with btn1:
                         if st.button("💾 עדכן קטגוריה", type="primary", use_container_width=True):
                             try:
                                 client = get_gspread_client()
                                 wb = client.open_by_url(SPREADSHEET_URL)
                                 dict_sheet = wb.worksheet("מילון_עסקים")
-                                
                                 cell = dict_sheet.find(edit_biz, in_column=1)
                                 if cell:
                                     dict_sheet.update_cell(cell.row, 2, new_cat)
                                     load_data.clear()
-                                    st.success(f"העסק '{edit_biz}' שויך מחדש בהצלחה ל-'{new_cat}'!")
+                                    st.success("עודכן!")
                                     st.rerun()
-                                else:
-                                    st.error("העסק לא נמצא בגיליון.")
                             except Exception as e:
-                                st.error(f"שגיאה בעדכון: {e}")
-                                
+                                st.error(f"שגיאה: {e}")
                     with btn2:
                         if st.button("🗑️ מחק עסק", use_container_width=True):
                             try:
                                 client = get_gspread_client()
                                 wb = client.open_by_url(SPREADSHEET_URL)
                                 dict_sheet = wb.worksheet("מילון_עסקים")
-                                
                                 cell = dict_sheet.find(edit_biz, in_column=1)
                                 if cell:
                                     dict_sheet.delete_rows(cell.row)
                                     load_data.clear()
-                                    st.success(f"העסק '{edit_biz}' נמחק מהמילון!")
+                                    st.success("נמחק!")
                                     st.rerun()
-                                else:
-                                    st.error("העסק לא נמצא בגיליון.")
                             except Exception as e:
-                                st.error(f"שגיאה במחיקה: {e}")
-                                
+                                st.error(f"שגיאה: {e}")
             with c_edit2:
-                st.markdown("<h4 style='color: #3b82f6;'>📚 רשימת העסקים המלאה במילון</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color: #3b82f6;'>📚 המילון המלא</h4>", unsafe_allow_html=True)
                 st.dataframe(df_dict, use_container_width=True, hide_index=True)
         else:
-            st.info("המילון כרגע ריק. הוסף עסקים חדשים במסך 'ניתוח קובץ אשראי'.")
-            
+            st.info("המילון כרגע ריק.")
         st.markdown('</div>', unsafe_allow_html=True)
 
 except Exception as e:
