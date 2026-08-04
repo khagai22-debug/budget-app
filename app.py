@@ -178,8 +178,7 @@ def process_mizrahi_pdf(pdf_file, df_dict):
             for page in pdf.pages:
                 text = page.extract_text()
                 if not text: continue
-                for line in text.split('
-'):
+                for line in text.split():
                     match = re.search(r'(d{2}/d{2}/d{4})', line)
                     if match:
                         date_str = match.group(1)
