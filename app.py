@@ -409,7 +409,7 @@ try:
                         df_up.loc[df_up['row_id'] == row['row_id'], 'קטגוריה_לתצוגה'] = row['קטגוריה_לתצוגה']
                     st.markdown('</div>', unsafe_allow_html=True)
                 
-                html_bars = f"<h3 style='margin-top: 30px; margin-bottom:20px; color:#1e293b;'>🎯 מדדי ניצול תקציב (אשראי)</h3><div style='margin-top: 20px;'>"
+                html_bars = "<h3 style='margin-top: 30px; margin-bottom:20px; color:#1e293b;'>🎯 מדדי ניצול תקציב (אשראי)</h3><div style='margin-top: 20px;'>"
                 total_planned_budget = sum(BUDGET_PLAN.values())
                 overall_percent = (up_total / total_planned_budget) * 100 if total_planned_budget > 0 else 100
                 overall_clamped = min(overall_percent, 100)
@@ -417,14 +417,22 @@ try:
                 
                 html_bars += f"""
                     <div style="margin-bottom: 40px; direction: rtl; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f4f7fc 100%); border-radius: 20px; border: 2px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
-                    <div><div style="font-weight: 800; color: #1e293b; font-size: 1.5rem;">סה״כ אשראי מול תקציב</div></div>
-                    <div style="text-align: left;"><span style="font-size: 2rem; font-weight: 800; color: #1e293b;">₪{up_total:,.0f}</span> 
-                    <span style="color: #64748b; font-size: 1.2rem; margin-right: 8px;">מתוך ₪{total_planned_budget:,.0f}</span>
-                    <div style="color: {overall_color}; font-weight: 800; font-size: 1.3rem; margin-top: -2px;">{overall_percent:.0f}%</div>
-                    </div></div><div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden;">
-                    <div style="background: linear-gradient(90deg, {overall_color}99, {overall_color}); height: 100%; width: {overall_clamped}%; border-radius: 16px; position: relative;"><div class="shimmer-effect"></div></div>
-                    </div></div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+                            <div>
+                                <div style="font-weight: 800; color: #1e293b; font-size: 1.5rem;">סה״כ אשראי מול תקציב</div>
+                            </div>
+                            <div style="text-align: left;">
+                                <span style="font-size: 2rem; font-weight: 800; color: #1e293b;">₪{up_total:,.0f}</span> 
+                                <span style="color: #64748b; font-size: 1.2rem; margin-right: 8px;">מתוך ₪{total_planned_budget:,.0f}</span>
+                                <div style="color: {overall_color}; font-weight: 800; font-size: 1.3rem; margin-top: -2px;">{overall_percent:.0f}%</div>
+                            </div>
+                        </div>
+                        <div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, {overall_color}99, {overall_color}); height: 100%; width: {overall_clamped}%; border-radius: 16px; position: relative;">
+                                <div class="shimmer-effect"></div>
+                            </div>
+                        </div>
+                    </div>
                 """
                 
                 for cat in CATEGORIES:
@@ -435,22 +443,39 @@ try:
                     percent = (spent / limit) * 100
                     clamped_percent = min(percent, 100)
                     bar_color = "#34d399" if percent <= 75 else "#fbbf24" if percent <= 100 else "#f87171"
+                    
                     html_bars += f"""
                         <div style="margin-bottom: 24px; direction: rtl;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">{cat}</span>
-                        <span style="color: #475569; font-size: 1rem;"><strong style="color:#0f172a;">₪{spent:,.0f}</strong> מתוך ₪{limit:,.0f} 
-                        <span style="background: {bar_color}20; color: {bar_color}; font-weight: 800; padding: 4px 10px; border-radius: 12px; margin-right: 8px;">{percent:.0f}%</span></span>
-                        </div><div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">
-                        <div style="background: linear-gradient(90deg, {bar_color}aa, {bar_color}); height: 100%; width: {clamped_percent}%; border-radius: 12px;"></div>
-                        </div></div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">{cat}</span>
+                                <span style="color: #475569; font-size: 1rem;">
+                                    <strong style="color:#0f172a;">₪{spent:,.0f}</strong> מתוך ₪{limit:,.0f} 
+                                    <span style="background: {bar_color}20; color: {bar_color}; font-weight: 800; padding: 4px 10px; border-radius: 12px; margin-right: 8px;">{percent:.0f}%</span>
+                                </span>
+                            </div>
+                            <div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">
+                                <div style="background: linear-gradient(90deg, {bar_color}aa, {bar_color}); height: 100%; width: {clamped_percent}%; border-radius: 12px;"></div>
+                            </div>
+                        </div>
                     """
                 
                 unassigned_spent = df_up[df_up["קטגוריה_לתצוגה"] == "לא משויך"]["סכום"].sum()
                 if unassigned_spent > 0:
-                    html_bars += f'<div style="margin-bottom: 24px; direction: rtl;"><div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span style="font-weight: 700; font-size: 1.1rem;">לא משויך</span><strong style="color:#ef4444;">₪{unassigned_spent:,.0f}</strong></div><div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%;"><div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div></div></div>'
+                    html_bars += f"""
+                        <div style="margin-bottom: 24px; direction: rtl;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="font-weight: 700; font-size: 1.1rem;">לא משויך</span>
+                                <strong style="color:#ef4444;">₪{unassigned_spent:,.0f}</strong>
+                            </div>
+                            <div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%;">
+                                <div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div>
+                            </div>
+                        </div>
+                    """
                 
-                st.markdown(html_bars + '</div>', unsafe_allow_html=True)
+                html_bars += "</div>" # סגירת ה-div החיצוני
+                st.markdown(html_bars, unsafe_allow_html=True)
+                
                 st.markdown("<hr style='margin: 40px 0; border: 0; border-top: 2px solid #e2e8f0;'>", unsafe_allow_html=True)
                 
                 c_pie, c_table = st.columns(2)
