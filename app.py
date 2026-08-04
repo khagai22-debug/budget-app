@@ -310,7 +310,6 @@ try:
     st.markdown('<div class="subtitle">שליטה מלאה, תובנות חכמות וניהול צבעוני וחי מכל מקום</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # הוספנו את הטאב לניהול המילון
     tab1, tab2, tab3 = st.tabs(["📊 דשבורד נוכחי (גוגל שיטס)", "📥 ניתוח קובץ אשראי והוספת עסקים למילון", "⚙️ ניהול מילון עסקים"])
     
     with tab1:
@@ -397,6 +396,44 @@ try:
             if df_up is not None and not df_up.empty:
                 up_total = df_up["סכום"].sum()
                 st.success(f"הקובץ נקלט בהצלחה! סך החיובים: ₪{up_total:,.0f}")
+                
+                # יצירת מזהה ייחודי לכל שורה לצורך עריכה
+                df_up['row_id'] = range(len(df_up))
+                
+                # איתור עסקאות שקשורות לאפליקציות תשלום
+                pay_mask = (df_up["קטגוריה_לתצוגה"] == "אפליקציות תשלום (דורש בירור)") | \
+                           ((df_up["קטגוריה_לתצוגה"] == "לא משויך") & df_up["שם עסק באשראי"].astype(str).str.upper().str.contains("BIT|PAYBOX|APPLE PAY|GOOGLE PAY", regex=True, na=False))
+                
+                if pay_mask.any():
+                    st.markdown('<div class="smart-assign-box" style="margin-top: 10px; margin-bottom: 30px; border-color: #3b82f6; background: linear-gradient(to right, #eff6ff, #ffffff);">', unsafe_allow_html=True)
+                    st.markdown("<h3 style='color: #3b82f6; margin-bottom: 5px;'>📱 בירור עסקאות באפליקציות תשלום</h3>", unsafe_allow_html=True)
+                    st.write("זיהינו עסקאות ב-Bit, Paybox וכדומה. בחר קטגוריה מדויקת לכל עסקה בטבלה כדי לעדכן את הגרפים:")
+                    
+                    df_pay = df_up[pay_mask][['row_id', 'תאריך', 'שם עסק באשראי', 'סכום', 'קטגוריה_לתצוגה']].copy()
+                    df_pay['תאריך'] = df_pay['תאריך'].astype(str).str.split(' ').str[0]
+                    
+                    valid_cats = [c for c in CATEGORIES if c not in ["עסק מוכר - סווג אוטומטית לפי מילון"]]
+                    
+                    # טבלה אינטראקטיבית לעריכת השורות הרלוונטיות
+                    edited_pay = st.data_editor(
+                        df_pay,
+                        column_config={
+                            "row_id": None, # מסתיר את עמודת המזהה
+                            "תאריך": st.column_config.TextColumn("תאריך", disabled=True),
+                            "שם עסק באשראי": st.column_config.TextColumn("שם עסק", disabled=True),
+                            "סכום": st.column_config.NumberColumn("סכום", format="₪%.0f", disabled=True),
+                            "קטגוריה_לתצוגה": st.column_config.SelectboxColumn("קטגוריה", options=valid_cats, required=True)
+                        },
+                        hide_index=True,
+                        use_container_width=True,
+                        key="pay_apps_editor"
+                    )
+                    
+                    # עדכון הדאטה פריים הראשי על בסיס השינויים בטבלה
+                    for _, row in edited_pay.iterrows():
+                        df_up.loc[df_up['row_id'] == row['row_id'], 'קטגוריה_לתצוגה'] = row['קטגוריה_לתצוגה']
+                        
+                    st.markdown('</div>', unsafe_allow_html=True)
                 
                 st.markdown("<h3 style='margin-top: 30px; margin-bottom:20px; color:#1e293b;'>🎯 מדדי ניצול תקציב</h3>", unsafe_allow_html=True)
                 
@@ -561,7 +598,6 @@ try:
                 
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # הטאב החדש לניהול, עריכה ומחיקה מתוך המילון
     with tab3:
         st.markdown('<div class="section-box">', unsafe_allow_html=True)
         st.markdown("<h3 style='color: #1e293b; margin-bottom: 10px;'>⚙️ ניהול מילון עסקים</h3>", unsafe_allow_html=True)
@@ -576,12 +612,10 @@ try:
             with c_edit1:
                 st.markdown("<h4 style='color: #3b82f6;'>✏️ עריכה או מחיקה של עסק קשור</h4>", unsafe_allow_html=True)
                 
-                # רשימה של כל העסקים הקיימים
                 all_bizzes = sorted(df_dict[biz_col].dropna().astype(str).unique().tolist())
                 edit_biz = st.selectbox("בחר עסק לעריכה:", all_bizzes)
                 
                 if edit_biz:
-                    # מוצאים את הקטגוריה הנוכחית של העסק
                     current_cat = df_dict[df_dict[biz_col] == edit_biz][cat_col].iloc[0]
                     st.write(f"משויך כרגע אל: **{current_cat}**")
                     
@@ -604,7 +638,6 @@ try:
                                 wb = client.open_by_url(SPREADSHEET_URL)
                                 dict_sheet = wb.worksheet("מילון_עסקים")
                                 
-                                # מציאת התא לפי השם המדויק ועדכון
                                 cell = dict_sheet.find(edit_biz, in_column=1)
                                 if cell:
                                     dict_sheet.update_cell(cell.row, 2, new_cat)
