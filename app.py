@@ -4,9 +4,6 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 import pandas as pd
 import plotly.express as px
-import pdfplumber
-import tempfile
-import os
 
 # הגדרות עמוד (חייב להיות ראשון)
 st.set_page_config(page_title="מערכת תקציב אישי - AI Advisor", page_icon="💎", layout="wide", initial_sidebar_state="collapsed")
@@ -169,78 +166,24 @@ def process_uploaded_excel(uploaded_file, df_dict):
         return df_mapped
     except: return None
 
-import re
-
-def process_mizrahi_pdf(pdf_file, df_dict):
-    try:
-        import pdfplumber
-        rows = []
-        with pdfplumber.open(pdf_file) as pdf:
-            for page in pdf.pages:
-                text = page.extract_text()
-                if not text: continue
-                for line in text.split():
-                    # הוספנו את הלוכסנים (d) כדי לזהות ספרות, ותמיכה ב-2 או 4 ספרות לשנה
-                    match = re.search(r'(d{2}/d{2}/d{2,4})', line)
-                    if match:
-                        date_str = match.group(1)
-                        rest = line[match.end():].strip()
-                        # הוספנו את הלוכסנים גם למזהה הסכומים
-                        amount_matches = list(re.finditer(r'((?:d{1,3},)?d{1,3}.d{2}-?)', rest))
-                        if amount_matches:
-                            amount_str = amount_matches[0].group(1)
-                            desc = rest[:amount_matches[0].start()].strip()
-                            desc = desc[::-1].replace(')(', '()').strip()
-                            desc = re.sub(r'^(W)', '', desc).strip()
-                            is_negative = '-' in amount_str
-                            amount_val = float(amount_str.replace(',', '').replace('-', ''))
-                            if is_negative: amount_val = -amount_val
-                            
-                            if amount_val != 0:
-                                # התאמת פיענוח התאריך לאורך השנה (2 ספרות או 4)
-                                if len(date_str.split('/')[-1]) == 2:
-                                    date_obj = pd.to_datetime(date_str, format='%d/%m/%y', errors='coerce')
-                                else:
-                                    date_obj = pd.to_datetime(date_str, format='%d/%m/%Y', errors='coerce')
-                                    
-                                rows.append({
-                                    'תאריך': date_str,
-                                    'תאריך_dt': date_obj,
-                                    'שם פעולה': desc,
-                                    'סכום': amount_val,
-                                    'סוג': 'הוצאה' if amount_val < 0 else 'הכנסה',
-                                    'סכום_אבסולוטי': abs(amount_val)
-                                })
-        if not rows: return None
-        df_mapped = pd.DataFrame(rows)
-        df_mapped["קטגוריה_לתצוגה"] = df_mapped["שם פעולה"].apply(lambda x: apply_dictionary(x, df_dict))
-        return df_mapped
-    except Exception as e:
-        st.error(f"שגיאה בקריאת ה-PDF: {e}")
-        return None
-
-        df_mapped = pd.DataFrame(rows)
-
-        df_mapped["קטגוריה_לתצוגה"] = (
-            df_mapped["שם פעולה"]
-            .apply(lambda value: apply_dictionary(value, df_dict))
-        )
-
-        return df_mapped
-
-    except Exception as error:
-        st.error(f"שגיאה בקריאת קובץ הבנק: {error}")
-        return None
-        
 def process_bank_excel(uploaded_file, df_dict):
     try:
-        df_raw = pd.read_excel(uploaded_file)
+        if uploaded_file.name.lower().endswith('.csv'):
+            df_raw = pd.read_csv(uploaded_file)
+        else:
+            df_raw = pd.read_excel(uploaded_file)
+            
         header_row = -1
         for i in range(min(15, len(df_raw))):
             row_vals = df_raw.iloc[i].astype(str).tolist()
             if any("תאריך" in val for val in row_vals) and any("זכות" in val or "חובה" in val or "סכום" in val for val in row_vals):
                 header_row = i; break
-        df_bank = pd.read_excel(uploaded_file, header=header_row + 1) if header_row >= 0 else df_raw
+                
+        if uploaded_file.name.lower().endswith('.csv'):
+            df_bank = pd.read_csv(uploaded_file, skiprows=header_row + 1) if header_row >= 0 else df_raw
+        else:
+            df_bank = pd.read_excel(uploaded_file, header=header_row + 1) if header_row >= 0 else df_raw
+            
         df_bank.columns = [str(c).strip() for c in df_bank.columns]
         
         date_col = next((c for c in df_bank.columns if "תאריך" in c), None)
@@ -285,7 +228,7 @@ try:
         "🤖 יועץ פיננסי אוטומטי (AI)",
         "📊 דשבורד חודשי", 
         "💳 ניתוח קובץ אשראי", 
-        "🏦 תנועות עובר ושב (PDF/Excel)",
+        "🏦 תנועות עובר ושב (Excel)",
         "⚙️ ניהול מילון"
     ])
     
@@ -306,7 +249,6 @@ try:
             current_month_df = df_tx[(df_tx["תאריך_dt"].dt.month == current_month) & (df_tx["תאריך_dt"].dt.year == current_year)]
             current_spent = current_month_df['סכום'].sum()
             
-            # נתונים מציאותיים מהניתוח שביצענו
             true_monthly_income = 29510
             true_monthly_expenses = 31197
             
@@ -337,27 +279,11 @@ try:
             st.markdown("#### ✂️ איפה אפשר לחסוך בפועל כל חודש?")
             
             potential_savings = [
-    {
-        "title": "אפליקציות תשלום - Bit ו-Paybox",
-        "amount": 2800,
-        "desc": "ראינו העברות קבועות וגדולות שלא מסווגות היטב, כולל תשלומים חוזרים של כ-2100 שקלים. חשוב לברר ולשייך כל העברה מראש."
-    },
-    {
-        "title": "חנויות נוחות והשלמות - Yellow ו-Cello",
-        "amount": 300,
-        "desc": "יש רכישות חוזרות בתחנות ובחנויות נוחות. העברת קניות ההשלמה לסופר עשויה לחסוך חלק גדול מהסכום."
-    },
-    {
-        "title": "ביטוחים",
-        "amount": 500,
-        "desc": "זוהו קפיצות בחיובי ביטוח. כדאי לבדוק כפל פוליסות ותמחור דרך אתר הר הביטוח."
-    },
-    {
-        "title": "ביגוד וילדים",
-        "amount": 200,
-        "desc": "זוהו רכישות במספר חנויות ביגוד. קנייה מרוכזת לפי עונה יכולה להפחית קניות דחף."
-    }
-                           ]
+                {"title": "אפליקציות תשלום (Bit/Paybox)", "amount": 2800, "desc": "ראינו העברות קבועות וגדולות שלא מסווגות היטב (למשל של 2,100 ש"ח). חייב לברר ולשייך מראש."},
+                {"title": "חנויות נוחות / השלמות (Yellow/Cello)", "amount": 300, "desc": "אתה מוציא סכומים חריגים בתחנות. העברת קניות ההשלמה לסופר תחסוך את רוב הסכום."},
+                {"title": "ביטוחים", "amount": 500, "desc": "זיהינו קפיצות של מאות שקלים בחודש בחיובי הביטוחים. שווה לבדוק כפל פוליסות דרך 'הר הביטוח'."},
+                {"title": "ביגוד וילדים (H&M, Children's Place)", "amount": 200, "desc": "זיהינו רכישות מרובות. ריכוז הקניות לעונה אחת יוריד את הפיתוי לקניית דחף שוטפת."},
+            ]
             
             for item in potential_savings:
                 st.markdown(f"""
@@ -562,26 +488,17 @@ try:
         st.markdown('</div>', unsafe_allow_html=True)
 
     # -------------------------------------------------------------
-    # TAB 4: תנועות בנק (כולל קריאת PDF של מזרחי טפחות)
+    # TAB 4: תנועות בנק (Excel בלבד)
     # -------------------------------------------------------------
     with tab4:
         st.markdown('<div class="section-box">', unsafe_allow_html=True)
         st.markdown("<h3 style='color: #1e293b; margin-bottom: 10px;'>🏦 ניתוח תנועות בנק (עובר ושב)</h3>", unsafe_allow_html=True)
-        st.write("העלה את דפי החשבון מהבנק. המערכת תומכת בקבצי Excel, וכן בקבצי PDF של **בנק מזרחי טפחות**.")
+        st.write("העלה את דפי החשבון מהבנק. המערכת תומכת בקבצי **Excel** (או CSV) בלבד.")
         
-        bank_file = st.file_uploader("העלה קובץ בנק (PDF או Excel)", type=["xlsx", "xls", "pdf"], key="bank_up")
+        bank_file = st.file_uploader("העלה קובץ בנק (Excel או CSV)", type=["xlsx", "xls", "csv"], key="bank_up")
         
         if bank_file is not None:
-            df_bank = None
-            if bank_file.name.lower().endswith('.pdf'):
-                st.info("מזהה קובץ PDF... סורק שורות עבור בנק מזרחי טפחות...")
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                    tmp.write(bank_file.getvalue())
-                    tmp_path = tmp.name
-                df_bank = process_mizrahi_pdf(tmp_path, df_dict)
-                os.unlink(tmp_path)
-            else:
-                df_bank = process_bank_excel(bank_file, df_dict)
+            df_bank = process_bank_excel(bank_file, df_dict)
             
             if df_bank is not None and not df_bank.empty:
                 total_in = df_bank[df_bank["סוג"] == "הכנסה"]["סכום_אבסולוטי"].sum()
@@ -637,11 +554,10 @@ try:
                             st.error(f"שגיאה: {e}")
                     st.markdown('</div>', unsafe_allow_html=True)
             else:
-                if bank_file.name.lower().endswith('.pdf'):
-                    st.error('הקובץ נסרק, אך לא זוהו תנועות. ודא שזהו קובץ עו״ש תקין של מזרחי טפחות.')
+                st.error("לא הצלחנו לפענח את התנועות. ודא שהקובץ הוא יצוא אקסל/CSV תקין מהבנק.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # -------------------------------------------------------------
+    # -------------------------------------------------------------
     # TAB 5: ניהול מילון
     # -------------------------------------------------------------
     with tab5:
@@ -672,7 +588,6 @@ try:
                                 sheet = get_gspread_client().open_by_url(SPREADSHEET_URL).worksheet("מילון_עסקים")
                                 cell = sheet.find(edit_biz)
                                 if cell:
-                                    # עדכון התא בעמודה הסמוכה (קטגוריה)
                                     sheet.update_cell(cell.row, cell.col + 1, new_cat)
                                     load_data.clear()
                                     st.success(f"✅ הקטגוריה עודכנה בהצלחה ל-{new_cat}!")
@@ -686,7 +601,6 @@ try:
                                 sheet = get_gspread_client().open_by_url(SPREADSHEET_URL).worksheet("מילון_עסקים")
                                 cell = sheet.find(edit_biz)
                                 if cell:
-                                    # מחיקת השורה כולה
                                     sheet.delete_rows(cell.row)
                                     load_data.clear()
                                     st.success("🗑️ העסק נמחק מהמילון!")
@@ -696,7 +610,6 @@ try:
             
             with c_edit2:
                 st.markdown("<h4 style='color: #1e293b;'>📋 כל המילון</h4>", unsafe_allow_html=True)
-                # תצוגת טבלה נקייה של כל המילון
                 st.dataframe(df_dict, use_container_width=True, hide_index=True, height=400)
                 
         else:
