@@ -680,7 +680,7 @@ try:
                     st.error('הקובץ נסרק, אך לא זוהו תנועות. ודא שזהו קובץ עו״ש תקין של מזרחי טפחות.')
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # -------------------------------------------------------------
+        # -------------------------------------------------------------
     # TAB 5: ניהול מילון
     # -------------------------------------------------------------
     with tab5:
@@ -708,36 +708,41 @@ try:
                     with btn1:
                         if st.button("💾 עדכן", type="primary", use_container_width=True):
                             try:
-                                client = get_gspread_client()
-                                wb = client.open_by_url(SPREADSHEET_URL)
-                                dict_sheet = wb.worksheet("מילון_עסקים")
-                                cell = dict_sheet.find(edit_biz, in_column=1)
+                                sheet = get_gspread_client().open_by_url(SPREADSHEET_URL).worksheet("מילון_עסקים")
+                                cell = sheet.find(edit_biz)
                                 if cell:
-                                    dict_sheet.update_cell(cell.row, 2, new_cat)
+                                    # עדכון התא בעמודה הסמוכה (קטגוריה)
+                                    sheet.update_cell(cell.row, cell.col + 1, new_cat)
                                     load_data.clear()
-                                    st.success("עודכן!")
+                                    st.success(f"✅ הקטגוריה עודכנה בהצלחה ל-{new_cat}!")
                                     st.rerun()
-                            except Exception as e: st.error(f"שגיאה: {e}")
+                            except Exception as e:
+                                st.error(f"שגיאה בעדכון: {e}")
+                    
                     with btn2:
-                        if st.button("🗑️ מחק", use_container_width=True):
+                        if st.button("🗑️ מחיקה", use_container_width=True):
                             try:
-                                client = get_gspread_client()
-                                wb = client.open_by_url(SPREADSHEET_URL)
-                                dict_sheet = wb.worksheet("מילון_עסקים")
-                                cell = dict_sheet.find(edit_biz, in_column=1)
+                                sheet = get_gspread_client().open_by_url(SPREADSHEET_URL).worksheet("מילון_עסקים")
+                                cell = sheet.find(edit_biz)
                                 if cell:
-                                    dict_sheet.delete_rows(cell.row)
+                                    # מחיקת השורה כולה
+                                    sheet.delete_rows(cell.row)
                                     load_data.clear()
-                                    st.success("נמחק!")
+                                    st.success("🗑️ העסק נמחק מהמילון!")
                                     st.rerun()
-                            except Exception as e: st.error(f"שגיאה: {e}")
+                            except Exception as e:
+                                st.error(f"שגיאה במחיקה: {e}")
+            
             with c_edit2:
-                st.markdown("<h4 style='color: #3b82f6;'>📚 המילון המלא</h4>", unsafe_allow_html=True)
-                st.dataframe(df_dict, use_container_width=True, hide_index=True)
+                st.markdown("<h4 style='color: #1e293b;'>📋 כל המילון</h4>", unsafe_allow_html=True)
+                # תצוגת טבלה נקייה של כל המילון
+                st.dataframe(df_dict, use_container_width=True, hide_index=True, height=400)
+                
         else:
-            st.info("המילון כרגע ריק.")
+            st.info("המילון ריק או שאין מספיק עמודות בגיליון 'מילון_עסקים'.")
+            
         st.markdown('</div>', unsafe_allow_html=True)
 
 except Exception as e:
-    st.error("שגיאת התחברות או ריצה. ודא שכתובת הגיליון נכונה בהגדרות.")
-    st.write(e)
+    st.error(f"שגיאה בהתחברות למאגר הנתונים: {e}")
+    st.info("אנא ודא שכתובת ה-Spreadsheet מוגדרת נכון ב-secrets.toml ושיש הרשאות מתאימות ל-Service Account.")
