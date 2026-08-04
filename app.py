@@ -35,7 +35,7 @@ BUDGET_PLAN = {
     "אפליקציות תשלום (דורש בירור)": 500,
 }
 
-# עיצוב פרימיום באמצעות HTML בטוח
+# עיצוב פרימיום
 CSS_CODE = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap');
@@ -147,7 +147,6 @@ html, body, [class*="css"] {
     font-weight: 600 !important;
     padding: 10px 24px !important;
     transition: all 0.3s ease !important;
-    width: 100%;
 }
 .stButton > button[kind="primary"] {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
@@ -311,7 +310,8 @@ try:
     st.markdown('<div class="subtitle">שליטה מלאה, תובנות חכמות וניהול צבעוני וחי מכל מקום</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["📊 דשבורד נוכחי (גוגל שיטס)", "📥 ניתוח קובץ אשראי והוספת עסקים למילון"])
+    # הוספנו את הטאב לניהול המילון
+    tab1, tab2, tab3 = st.tabs(["📊 דשבורד נוכחי (גוגל שיטס)", "📥 ניתוח קובץ אשראי והוספת עסקים למילון", "⚙️ ניהול מילון עסקים"])
     
     with tab1:
         total_spent = float(df_tx["סכום"].sum()) if not df_tx.empty else 0.0
@@ -356,7 +356,7 @@ try:
                 note = st.text_input("הערות (אופציונלי)")
                 
                 st.markdown("<br>", unsafe_allow_html=True)
-                submitted = st.form_submit_button("➕ שלח נתונים לתקציב", type="primary")
+                submitted = st.form_submit_button("➕ שלח נתונים לתקציב", type="primary", use_container_width=True)
 
                 if submitted:
                     chosen_business = business_manual.strip() if business_manual.strip() else business.strip()
@@ -532,8 +532,6 @@ try:
                     unassigned_list_file = unassigned_in_file["שם עסק באשראי"].dropna().unique().tolist()
                     unassigned_list_file = [str(x).strip() for x in unassigned_list_file if str(x).strip()]
                     
-                    # התיקון: הוצאנו את שדות הבחירה מתוך st.form
-                    # עכשיו המשתנים מתעדכנים בזמן אמת בלי שום דיליי
                     c1, c2 = st.columns(2)
                     with c1:
                         selected_new_biz = st.selectbox("בחר עסק לא משויך מתוך הקובץ", unassigned_list_file, key="select_biz")
@@ -543,7 +541,7 @@ try:
                         
                     st.markdown("<br>", unsafe_allow_html=True)
                     
-                    if st.button("💾 שמור למילון ורענן נתונים", type="primary"):
+                    if st.button("💾 שמור למילון ורענן נתונים", type="primary", use_container_width=True):
                         if selected_new_biz and selected_new_cat:
                             try:
                                 client = get_gspread_client()
@@ -561,6 +559,87 @@ try:
             elif df_up is not None and df_up.empty:
                 st.warning("הקובץ נקרא בהצלחה, אך לא נמצאו בו שורות תקינות עם תאריך וסכום.")
                 
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # הטאב החדש לניהול, עריכה ומחיקה מתוך המילון
+    with tab3:
+        st.markdown('<div class="section-box">', unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #1e293b; margin-bottom: 10px;'>⚙️ ניהול מילון עסקים</h3>", unsafe_allow_html=True)
+        st.write("כאן תוכל לצפות בכל העסקים ששמרת עד כה, לערוך שיוך שגוי או למחוק עסק לגמרי.")
+        
+        if not df_dict.empty and len(df_dict.columns) >= 2:
+            biz_col = df_dict.columns[0]
+            cat_col = df_dict.columns[1]
+            
+            c_edit1, c_edit2 = st.columns([1, 1.2])
+            
+            with c_edit1:
+                st.markdown("<h4 style='color: #3b82f6;'>✏️ עריכה או מחיקה של עסק קשור</h4>", unsafe_allow_html=True)
+                
+                # רשימה של כל העסקים הקיימים
+                all_bizzes = sorted(df_dict[biz_col].dropna().astype(str).unique().tolist())
+                edit_biz = st.selectbox("בחר עסק לעריכה:", all_bizzes)
+                
+                if edit_biz:
+                    # מוצאים את הקטגוריה הנוכחית של העסק
+                    current_cat = df_dict[df_dict[biz_col] == edit_biz][cat_col].iloc[0]
+                    st.write(f"משויך כרגע אל: **{current_cat}**")
+                    
+                    valid_cats = [c for c in CATEGORIES if c not in ["עסק מוכר - סווג אוטומטית לפי מילון", "לא משויך"]]
+                    
+                    try:
+                        default_idx = valid_cats.index(current_cat)
+                    except ValueError:
+                        default_idx = 0
+                        
+                    new_cat = st.selectbox("שנה לקטגוריה אחרת:", valid_cats, index=default_idx)
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    btn1, btn2 = st.columns(2)
+                    
+                    with btn1:
+                        if st.button("💾 עדכן קטגוריה", type="primary", use_container_width=True):
+                            try:
+                                client = get_gspread_client()
+                                wb = client.open_by_url(SPREADSHEET_URL)
+                                dict_sheet = wb.worksheet("מילון_עסקים")
+                                
+                                # מציאת התא לפי השם המדויק ועדכון
+                                cell = dict_sheet.find(edit_biz, in_column=1)
+                                if cell:
+                                    dict_sheet.update_cell(cell.row, 2, new_cat)
+                                    load_data.clear()
+                                    st.success(f"העסק '{edit_biz}' שויך מחדש בהצלחה ל-'{new_cat}'!")
+                                    st.rerun()
+                                else:
+                                    st.error("העסק לא נמצא בגיליון.")
+                            except Exception as e:
+                                st.error(f"שגיאה בעדכון: {e}")
+                                
+                    with btn2:
+                        if st.button("🗑️ מחק עסק", use_container_width=True):
+                            try:
+                                client = get_gspread_client()
+                                wb = client.open_by_url(SPREADSHEET_URL)
+                                dict_sheet = wb.worksheet("מילון_עסקים")
+                                
+                                cell = dict_sheet.find(edit_biz, in_column=1)
+                                if cell:
+                                    dict_sheet.delete_rows(cell.row)
+                                    load_data.clear()
+                                    st.success(f"העסק '{edit_biz}' נמחק מהמילון!")
+                                    st.rerun()
+                                else:
+                                    st.error("העסק לא נמצא בגיליון.")
+                            except Exception as e:
+                                st.error(f"שגיאה במחיקה: {e}")
+                                
+            with c_edit2:
+                st.markdown("<h4 style='color: #3b82f6;'>📚 רשימת העסקים המלאה במילון</h4>", unsafe_allow_html=True)
+                st.dataframe(df_dict, use_container_width=True, hide_index=True)
+        else:
+            st.info("המילון כרגע ריק. הוסף עסקים חדשים במסך 'ניתוח קובץ אשראי'.")
+            
         st.markdown('</div>', unsafe_allow_html=True)
 
 except Exception as e:
