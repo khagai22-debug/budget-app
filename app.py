@@ -615,7 +615,7 @@ try:
                     st.markdown('</div>', unsafe_allow_html=True)
             else:
                 if bank_file.name.lower().endswith('.pdf'):
-                    st.error("הקובץ נסרק, אך לא זוהו תנועות. ודא שזהו קובץ עו"ש תקין של מזרחי טפחות.")
+                    st.error('הקובץ נסרק, אך לא זוהו תנועות. ודא שזהו קובץ עו״ש תקין של מזרחי טפחות.')
         st.markdown('</div>', unsafe_allow_html=True)
 
     # -------------------------------------------------------------
