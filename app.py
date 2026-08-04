@@ -172,43 +172,80 @@ def process_uploaded_excel(uploaded_file, df_dict):
 import re
 def process_mizrahi_pdf(pdf_file, df_dict):
     try:
-        import pdfplumber
-        rows = []
-        with pdfplumber.open(pdf_file) as pdf:
-            for page in pdf.pages:
-                text = page.extract_text()
-                if not text: continue
-                for line in text.split():
-                    match = re.search(r'(d{2}/d{2}/d{4})', line)
-                    if match:
-                        date_str = match.group(1)
-                        rest = line[match.end():].strip()
-                        amount_matches = list(re.finditer(r'((?:d{1,3},)?d{1,3}.d{2}-?)', rest))
-                        if amount_matches:
-                            amount_str = amount_matches[0].group(1)
-                            desc = rest[:amount_matches[0].start()].strip()
-                            desc = desc[::-1].replace(')(', '()').strip()
-                            desc = re.sub(r'^(w)', '', desc).strip()
-                            is_negative = '-' in amount_str
-                            amount_val = float(amount_str.replace(',', '').replace('-', ''))
-                            if is_negative: amount_val = -amount_val
-                            if amount_val != 0:
-                                rows.append({
-                                    'תאריך': date_str,
-                                    'תאריך_dt': pd.to_datetime(date_str, format='%d/%m/%Y'),
-                                    'שם פעולה': desc,
-                                    'סכום': amount_val,
-                                    'סוג': 'הוצאה' if amount_val < 0 else 'הכנסה',
-                                    'סכום_אבסולוטי': abs(amount_val)
-                                })
-        if not rows: return None
-        df_mapped = pd.DataFrame(rows)
-        df_mapped["קטגוריה_לתצוגה"] = df_mapped["שם פעולה"].apply(lambda x: apply_dictionary(x, df_dict))
-        return df_mapped
-    except Exception as e:
-        st.error(f"שגיאה בקריאת ה-PDF: {e}")
-        return None
+        from pypdf import PdfReader
+        import re
 
+        reader = PdfReader(pdf_file)
+        rows = []
+
+        for page in reader.pages:
+            text = page.extract_text() or ""
+
+            for line in text.splitlines():
+                line = line.strip()
+
+                date_match = re.search(r"(d{2}/d{2}/d{4})", line)
+                if not date_match:
+                    continue
+
+                date_text = date_match.group(1)
+                rest = line[date_match.end():].strip()
+
+                amount_match = re.search(
+                    r"(-?d{1,3}(?:,d{3})*.d{2}|d{1,3}(?:,d{3})*.d{2}-)",
+                    rest
+                )
+
+                if not amount_match:
+                    continue
+
+                amount_text = amount_match.group(1)
+                description = rest[:amount_match.start()].strip()
+
+                description = description.replace("(י)", "").replace(")י(", "").strip()
+
+                if not description:
+                    continue
+
+                is_negative = amount_text.endswith("-") or amount_text.startswith("-")
+
+                amount = float(
+                    amount_text
+                    .replace(",", "")
+                    .replace("-", "")
+                )
+
+                if is_negative:
+                    amount = -amount
+
+                rows.append({
+                    "תאריך": date_text,
+                    "תאריך_dt": pd.to_datetime(
+                        date_text,
+                        format="%d/%m/%Y",
+                        errors="coerce"
+                    ),
+                    "שם פעולה": description,
+                    "סכום": amount,
+                    "סוג": "הכנסה" if amount > 0 else "הוצאה",
+                    "סכום_אבסולוטי": abs(amount)
+                })
+
+        if not rows:
+            return None
+
+        df_mapped = pd.DataFrame(rows)
+        df_mapped = df_mapped.dropna(subset=["תאריך_dt"])
+
+        df_mapped["קטגוריה_לתצוגה"] = df_mapped["שם פעולה"].apply(
+            lambda x: apply_dictionary(x, df_dict)
+        )
+
+        return df_mapped
+
+    except Exception as e:
+        st.error(f"שגיאה בקריאת קובץ הבנק: {e}")
+        return None
 def process_bank_excel(uploaded_file, df_dict):
     try:
         df_raw = pd.read_excel(uploaded_file)
