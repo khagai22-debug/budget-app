@@ -5,3 +5,4 @@ google-auth
 plotly
 openpyxl
 pdfplumber
+pypdf
