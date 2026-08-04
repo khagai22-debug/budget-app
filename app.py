@@ -173,90 +173,52 @@ import re
 
 def process_mizrahi_pdf(pdf_file, df_dict):
     try:
-        from pypdf import PdfReader
-        import re
-
-        reader = PdfReader(pdf_file)
+        import pdfplumber
         rows = []
-
-        for page in reader.pages:
-            page_text = page.extract_text() or ""
-
-            date_matches = list(
-                re.finditer(r"d{2}/d{2}/d{4}", page_text)
-            )
-
-            for i, date_match in enumerate(date_matches):
-                date_text = date_match.group()
-
-                start = date_match.end()
-
-                if i < len(date_matches) - 1:
-                    end = date_matches[i + 1].start()
-                else:
-                    end = len(page_text)
-
-                transaction_text = page_text[start:end].strip()
-
-                amount_match = re.search(
-                    r"-?d{1,3}(?:,d{3})*.d{2}-?",
-                    transaction_text
-                )
-
-                if not amount_match:
-                    continue
-
-                amount_text = amount_match.group()
-                description = transaction_text[
-                    :amount_match.start()
-                ].strip()
-
-                description = (
-                    description
-                    .replace("(י)", "")
-                    .replace(")י(", "")
-                    .replace("(פ)", "")
-                    .replace(")פ(", "")
-                    .strip()
-                )
-
-                if len(description) < 2:
-                    continue
-
-                is_negative = (
-                    amount_text.startswith("-")
-                    or amount_text.endswith("-")
-                )
-
-                amount = float(
-                    amount_text
-                    .replace(",", "")
-                    .replace("-", "")
-                )
-
-                if is_negative:
-                    amount = -amount
-
-                parsed_date = pd.to_datetime(
-                    date_text,
-                    format="%d/%m/%Y",
-                    errors="coerce"
-                )
-
-                if pd.isna(parsed_date):
-                    continue
-
-                rows.append({
-                    "תאריך": date_text,
-                    "תאריך_dt": parsed_date,
-                    "שם פעולה": description,
-                    "סכום": amount,
-                    "סוג": "הכנסה" if amount > 0 else "הוצאה",
-                    "סכום_אבסולוטי": abs(amount)
-                })
-
-        if len(rows) == 0:
-            return None
+        with pdfplumber.open(pdf_file) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if not text: continue
+                for line in text.split('
+'):
+                    # הוספנו את הלוכסנים (d) כדי לזהות ספרות, ותמיכה ב-2 או 4 ספרות לשנה
+                    match = re.search(r'(d{2}/d{2}/d{2,4})', line)
+                    if match:
+                        date_str = match.group(1)
+                        rest = line[match.end():].strip()
+                        # הוספנו את הלוכסנים גם למזהה הסכומים
+                        amount_matches = list(re.finditer(r'((?:d{1,3},)?d{1,3}.d{2}-?)', rest))
+                        if amount_matches:
+                            amount_str = amount_matches[0].group(1)
+                            desc = rest[:amount_matches[0].start()].strip()
+                            desc = desc[::-1].replace(')(', '()').strip()
+                            desc = re.sub(r'^(W)', '', desc).strip()
+                            is_negative = '-' in amount_str
+                            amount_val = float(amount_str.replace(',', '').replace('-', ''))
+                            if is_negative: amount_val = -amount_val
+                            
+                            if amount_val != 0:
+                                # התאמת פיענוח התאריך לאורך השנה (2 ספרות או 4)
+                                if len(date_str.split('/')[-1]) == 2:
+                                    date_obj = pd.to_datetime(date_str, format='%d/%m/%y', errors='coerce')
+                                else:
+                                    date_obj = pd.to_datetime(date_str, format='%d/%m/%Y', errors='coerce')
+                                    
+                                rows.append({
+                                    'תאריך': date_str,
+                                    'תאריך_dt': date_obj,
+                                    'שם פעולה': desc,
+                                    'סכום': amount_val,
+                                    'סוג': 'הוצאה' if amount_val < 0 else 'הכנסה',
+                                    'סכום_אבסולוטי': abs(amount_val)
+                                })
+        if not rows: return None
+        df_mapped = pd.DataFrame(rows)
+        df_mapped["קטגוריה_לתצוגה"] = df_mapped["שם פעולה"].apply(lambda x: apply_dictionary(x, df_dict))
+        return df_mapped
+    except Exception as e:
+        st.error(f"שגיאה בקריאת ה-PDF: {e}")
+        return None
 
         df_mapped = pd.DataFrame(rows)
 
