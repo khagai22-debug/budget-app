@@ -182,7 +182,6 @@ html, body, [class*="css"] {
 """
 st.markdown(CSS_CODE, unsafe_allow_html=True)
 
-# פונקציית עזר ליצירת כרטיסיות
 def render_metric(label, value, icon="💰", delta=None, is_currency=True):
     val_str = f"₪{value:,.0f}" if is_currency else f"{value:,}"
     delta_html = ""
@@ -533,35 +532,7 @@ try:
                     unassigned_list_file = unassigned_in_file["שם עסק באשראי"].dropna().unique().tolist()
                     unassigned_list_file = [str(x).strip() for x in unassigned_list_file if str(x).strip()]
                     
-                    with st.form("quick_dict_assign_form", clear_on_submit=True):
-                        c1, c2 = st.columns(2)
-                        with c1:
-                            biz_to_assign = st.selectbox("בחר עסק לא משויך מתוך הקובץ", unassigned_list_file)
-                        with c2:
-                            valid_cats = [c for c in CATEGORIES if c not in ["עסק מוכר - סווג אוטומטית לפי מילון", "לא משויך"]]
-                            cat_to_assign = st.selectbox("שייך אותו לקטגוריה:", valid_cats)
-                            
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        submit_dict = st.form_submit_button("💾 שמור למילון", type="primary")
-                        
-                        if submit_dict and biz_to_assign:
-                            try:
-                                client = get_gspread_client()
-                                wb = client.open_by_url(SPREADSHEET_URL)
-                                dict_sheet = wb.worksheet("מילון_עסקים")
-                                dict_sheet.append_row([biz_to_assign, cat_to_assign])
-                                load_data.clear()
-                                st.success(f"העסק '{biz_to_assign}' שויך בהצלחה ל-'{cat_to_assign}'! תעלה שוב את הקובץ כדי לראות את השינוי.")
-                            except Exception as e:
-                                st.error(f"שגיאה בשמירת הנתונים: {e}")
-                                
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-            elif df_up is not None and df_up.empty:
-                st.warning("הקובץ נקרא בהצלחה, אך לא נמצאו בו שורות תקינות עם תאריך וסכום.")
-                
-        st.markdown('</div>', unsafe_allow_html=True)
-
-except Exception as e:
-    st.error("שגיאת התחברות למסד הנתונים או ריצה. בדוק את הלוגים.")
-    st.write(e)
+                    # התיקון: הוצאנו את שדות הבחירה מתוך st.form
+                    # עכשיו המשתנים מתעדכנים בזמן אמת בלי שום דיליי
+                    c1, c2 = st.columns(2)
+                    with
