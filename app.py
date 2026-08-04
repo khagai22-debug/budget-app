@@ -179,8 +179,7 @@ def process_mizrahi_pdf(pdf_file, df_dict):
             for page in pdf.pages:
                 text = page.extract_text()
                 if not text: continue
-                for line in text.split('
-'):
+                for line in text.split():
                     # הוספנו את הלוכסנים (d) כדי לזהות ספרות, ותמיכה ב-2 או 4 ספרות לשנה
                     match = re.search(r'(d{2}/d{2}/d{2,4})', line)
                     if match:
