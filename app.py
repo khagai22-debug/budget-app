@@ -413,26 +413,26 @@ try:
                     overall_color = "#ef4444" # אדום
                 
                 # בר מקיף חדש (Premium Shimmer)
-                overall_html = f"""
-                <div style="margin-bottom: 40px; direction: rtl; padding: 24px; background: linear-gradient(to left, #f8fafc, #ffffff); border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
-                        <div>
-                            <div style="font-weight: 800; color: #0f172a; font-size: 1.4rem;">סה״כ הוצאות מול תקציב</div>
-                            <div style="color: #64748b; font-size: 0.95rem; margin-top: 4px;">תמונת מצב כללית לקובץ המועלה</div>
-                        </div>
-                        <div style="text-align: left;">
-                            <span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">₪{up_total:,.0f}</span>
-                            <span style="color: #64748b; font-size: 1.1rem; margin-right: 8px;">מתוך ₪{total_planned_budget:,.0f}</span>
-                            <div style="color: {overall_color}; font-weight: 800; font-size: 1.2rem; margin-top: -4px;">{overall_percent:.0f}%</div>
-                        </div>
-                    </div>
-                    <div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
-                        <div style="background: linear-gradient(90deg, {overall_color}dd, {overall_color}); height: 100%; width: {overall_clamped}%; border-radius: 16px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); position: relative;">
-                            <div class="shimmer-effect"></div>
-                        </div>
-                    </div>
-                </div>
-                """
+                overall_html = (
+                    '<div style="margin-bottom: 40px; direction: rtl; padding: 24px; background: linear-gradient(to left, #f8fafc, #ffffff); border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">'
+                    '<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">'
+                    '<div>'
+                    '<div style="font-weight: 800; color: #0f172a; font-size: 1.4rem;">סה״כ הוצאות מול תקציב</div>'
+                    '<div style="color: #64748b; font-size: 0.95rem; margin-top: 4px;">תמונת מצב כללית לקובץ המועלה</div>'
+                    '</div>'
+                    '<div style="text-align: left;">'
+                    '<span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">₪' + f"{up_total:,.0f}" + '</span> '
+                    '<span style="color: #64748b; font-size: 1.1rem; margin-right: 8px;">מתוך ₪' + f"{total_planned_budget:,.0f}" + '</span>'
+                    '<div style="color: ' + overall_color + '; font-weight: 800; font-size: 1.2rem; margin-top: -4px;">' + f"{overall_percent:.0f}" + '%</div>'
+                    '</div>'
+                    '</div>'
+                    '<div style="background-color: #e2e8f0; border-radius: 16px; height: 28px; width: 100%; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">'
+                    '<div style="background: linear-gradient(90deg, ' + overall_color + 'dd, ' + overall_color + '); height: 100%; width: ' + f"{overall_clamped}" + '%; border-radius: 16px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); position: relative;">'
+                    '<div class="shimmer-effect"></div>'
+                    '</div>'
+                    '</div>'
+                    '</div>'
+                )
                 html_bars += overall_html
                 
                 # רשימת ברים לקטגוריות
@@ -456,37 +456,37 @@ try:
                     else:
                         bar_color = "#ef4444"
                         
-                    bar_html = f"""
-                    <div style="margin-bottom: 24px; direction: rtl;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <span style="font-weight: 700; color: #1e293b; font-size: 1.05rem;">{cat}</span>
-                            <span style="color: #64748b; font-size: 0.95rem;">
-                                <strong style="color:#0f172a;">₪{spent:,.0f}</strong> מתוך ₪{limit:,.0f} 
-                                <span style="background: {bar_color}15; color: {bar_color}; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-right: 8px;">{percent:.0f}%</span>
-                            </span>
-                        </div>
-                        <div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">
-                            <div style="background: linear-gradient(90deg, {bar_color}CC, {bar_color}); height: 100%; width: {clamped_percent}%; border-radius: 12px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);"></div>
-                        </div>
-                    </div>
-                    """
+                    bar_html = (
+                        '<div style="margin-bottom: 24px; direction: rtl;">'
+                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">'
+                        '<span style="font-weight: 700; color: #1e293b; font-size: 1.05rem;">' + cat + '</span>'
+                        '<span style="color: #64748b; font-size: 0.95rem;">'
+                        '<strong style="color:#0f172a;">₪' + f"{spent:,.0f}" + '</strong> מתוך ₪' + f"{limit:,.0f}" + ' '
+                        '<span style="background: ' + bar_color + '15; color: ' + bar_color + '; font-weight: 800; padding: 2px 8px; border-radius: 12px; margin-right: 8px;">' + f"{percent:.0f}" + '%</span>'
+                        '</span>'
+                        '</div>'
+                        '<div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">'
+                        '<div style="background: linear-gradient(90deg, ' + bar_color + 'CC, ' + bar_color + '); height: 100%; width: ' + f"{clamped_percent}" + '%; border-radius: 12px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);"></div>'
+                        '</div>'
+                        '</div>'
+                    )
                     html_bars += bar_html
                 
                 unassigned_spent = df_up[df_up["קטגוריה_לתצוגה"] == "לא משויך"]["סכום"].sum()
                 if unassigned_spent > 0:
-                    unassigned_html = f"""
-                    <div style="margin-bottom: 24px; direction: rtl;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <span style="font-weight: 700; color: #1e293b; font-size: 1.05rem;">לא משויך (ללא תקציב)</span>
-                            <span style="color: #ef4444; font-size: 0.95rem;">
-                                סה"כ נוצל: <strong>₪{unassigned_spent:,.0f}</strong>
-                            </span>
-                        </div>
-                        <div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">
-                            <div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div>
-                        </div>
-                    </div>
-                    """
+                    unassigned_html = (
+                        '<div style="margin-bottom: 24px; direction: rtl;">'
+                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">'
+                        '<span style="font-weight: 700; color: #1e293b; font-size: 1.05rem;">לא משויך (ללא תקציב)</span>'
+                        '<span style="color: #ef4444; font-size: 0.95rem;">'
+                        'סה"כ נוצל: <strong>₪' + f"{unassigned_spent:,.0f}" + '</strong>'
+                        '</span>'
+                        '</div>'
+                        '<div style="background-color: #f1f5f9; border-radius: 12px; height: 18px; width: 100%; overflow: hidden;">'
+                        '<div style="background-color: #94a3b8; height: 100%; width: 100%; border-radius: 12px;"></div>'
+                        '</div>'
+                        '</div>'
+                    )
                     html_bars += unassigned_html
                     
                 html_bars += '</div>'
