@@ -269,7 +269,9 @@ def process_mizrahi_pdf(pdf_file, df_dict):
 
     except Exception as error:
         st.error(f"שגיאה בקריאת קובץ הבנק: {error}")
-        return Nonedef process_bank_excel(uploaded_file, df_dict):
+        return None
+        
+ def process_bank_excel(uploaded_file, df_dict):
     try:
         df_raw = pd.read_excel(uploaded_file)
         header_row = -1
