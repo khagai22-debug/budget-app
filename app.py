@@ -535,4 +535,34 @@ try:
                     # התיקון: הוצאנו את שדות הבחירה מתוך st.form
                     # עכשיו המשתנים מתעדכנים בזמן אמת בלי שום דיליי
                     c1, c2 = st.columns(2)
-                    with
+                    with c1:
+                        selected_new_biz = st.selectbox("בחר עסק לא משויך מתוך הקובץ", unassigned_list_file, key="select_biz")
+                    with c2:
+                        valid_cats = [c for c in CATEGORIES if c not in ["עסק מוכר - סווג אוטומטית לפי מילון", "לא משויך"]]
+                        selected_new_cat = st.selectbox("שייך אותו לקטגוריה:", valid_cats, key="select_cat")
+                        
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    if st.button("💾 שמור למילון ורענן נתונים", type="primary"):
+                        if selected_new_biz and selected_new_cat:
+                            try:
+                                client = get_gspread_client()
+                                wb = client.open_by_url(SPREADSHEET_URL)
+                                dict_sheet = wb.worksheet("מילון_עסקים")
+                                dict_sheet.append_row([selected_new_biz, selected_new_cat])
+                                load_data.clear()
+                                st.success(f"העסק '{selected_new_biz}' שויך בהצלחה ל-'{selected_new_cat}'! סורק מחדש את הקובץ...")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"שגיאה בשמירת הנתונים: {e}")
+                                
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+            elif df_up is not None and df_up.empty:
+                st.warning("הקובץ נקרא בהצלחה, אך לא נמצאו בו שורות תקינות עם תאריך וסכום.")
+                
+        st.markdown('</div>', unsafe_allow_html=True)
+
+except Exception as e:
+    st.error("שגיאת התחברות למסד הנתונים או ריצה. בדוק את הלוגים.")
+    st.write(e)
