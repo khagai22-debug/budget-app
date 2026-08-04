@@ -216,3 +216,32 @@ def load_data(spreadsheet_url):
     tx_sheet = wb.worksheet("תנועות_אשראי")
     
     try:
+        dict_sheet = wb.worksheet("מילון_עסקים")
+        dict_rows = dict_sheet.get_all_records()
+        df_dict = pd.DataFrame(dict_rows)
+        business_names = []
+        if not df_dict.empty:
+            first_col = df_dict.columns[0]
+            business_names = sorted([str(x).strip() for x in df_dict[first_col].dropna().tolist() if str(x).strip()])
+    except:
+        business_names = []
+        df_dict = pd.DataFrame()
+
+    tx_rows = tx_sheet.get_all_records()
+    df_tx = pd.DataFrame(tx_rows)
+
+    if not df_tx.empty:
+        df_tx = df_tx.rename(columns=lambda x: str(x).strip())
+        if "סכום" in df_tx.columns:
+            df_tx["סכום"] = pd.to_numeric(df_tx["סכום"], errors="coerce").fillna(0)
+        else:
+            df_tx["סכום"] = 0
+        if "תאריך" in df_tx.columns:
+            df_tx["תאריך_dt"] = pd.to_datetime(df_tx["תאריך"], dayfirst=True, errors="coerce")
+        else:
+            df_tx["תאריך_dt"] = pd.NaT
+
+        category_col = None
+        for c in df_tx.columns:
+            if "שיוך" in c or "קטגור" in c:
+                category_col = c
