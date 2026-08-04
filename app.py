@@ -168,3 +168,17 @@ html, body, [class*="css"] {
 
 /* Animations */
 .shimmer-effect {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s infinite linear;
+}
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* עיצוב לאזור שיוך חכם */
+.smart-assign-box {
+    background: linear-gradient(to right, #fffbeb, #e0e7ff);
+    border: 2px
