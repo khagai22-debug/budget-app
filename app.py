@@ -170,7 +170,7 @@ def process_uploaded_excel(uploaded_file, df_dict):
     except: return None
 
 import re
-def process_mizrahi_pdf(pdf_file, df_dict):
+
 def process_mizrahi_pdf(pdf_file, df_dict):
     try:
         from pypdf import PdfReader
